@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <title>ＮＳＴ５周年記念 文字早打ちコンテスト</title>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-default/index.css">
+</head>
+<body>
+  <div id="app">
+    <!-- チーム選択画面 -->
+    <template v-if="userInfo.team ==='INVALID'">
+      <!--
+      <p><el-input v-on:change="inputUserName" placeholder="社員番号 or お名前の入力"></el-input></p>
+      -->
+      <p><el-input :value="userInfo.userName" v-model="userInfo.userName" placeholder="社員番号 or お名前の入力"></el-input></p>
+      <template v-if="userInfo.userName !== ''">
+        <el-button type="primary" size="large" v-on:click="selectTeam( '春' )">春</el-button>
+        <el-button type="primary" size="large" v-on:click="selectTeam( '夏' )">夏</el-button>
+        <el-button type="primary" size="large" v-on:click="selectTeam( '秋' )">秋</el-button>
+        <el-button type="primary" size="large" v-on:click="selectTeam( '冬' )">冬</el-button>
+      </template>
+    </template>
+
+    <!-- タイピング画面 -->
+    <template v-else>
+      <p>{{userInfo.team}}：{{userInfo.userName}}</p>
+      <template v-if="screenInfo.isPlaying">
+        {{dispTypingWord}}<br>
+        {{dispViewWord}}
+      </template>
+      <template v-else>
+        <p>準備中</p>
+      </template>
+      <p>
+        <el-input
+          v-on:change="typing"
+          :value="screenInfo.typing"
+          v-model="screenInfo.typing"
+          placeholder=""
+          :disabled="!screenInfo.isPlaying">
+        </el-input>
+      </p>
+    </template>
+  </div>
+</body>
+  <!-- Vue.js -->
+  <script src="https://unpkg.com/vue/dist/vue.js"></script>
+  <!-- element-ui -->
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  <!-- jquerry -->
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+  <!-- PUBNUB -->
+  <script src="https://cdn.pubnub.com/pubnub.min.js"></script>
+  <!-- app script-->
+  <script src="./js/const/pubnub.js"></script>
+  <script src="./js/const/action.js"></script>
+  <script src="./js/const/team.js"></script>
+  <script src="./js/module/uuid.js"></script>
+  <script src="./js/logic/player.js"></script>
+  </html>
