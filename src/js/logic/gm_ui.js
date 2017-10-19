@@ -79,18 +79,6 @@ const app = new Vue({
 	el 		: "#app",
 	data	: store.state,
 	methods : {
-		changeLimitSec	:
-			function( value ) {
-				store.changeLimitSec( value );
-			},
-		inputRoundName	:
-			function( value ) {
-				store.inputRoundName( value );
-			},
-		inputWords	:
-			function( value ) {
-				store.inputWords( value );
-			},
 		gameStart :
 			function() {
 				store.state.gameInfo.words = JSON.parse(store.state.screenInfo.wordsString);
