@@ -58,20 +58,21 @@ $(document).ready(function(){
 					store.state.gameInfo = json.payload;
 					break;
 				case GAME_START_COUNT:	// ゲーム開始までのカウントダウン
-					if(store.state.gameInfo.roundId === json.payload.roundId) {
+					if( store.state.gameInfo.roundId === json.payload.roundId ) {
 						// TODO:カウントダウン表示処理
 					}
 					break;
 				case GAME_FINISH_COUNT:	// ゲーム終了までのカウントダウン
-					if(store.state.gameInfo.roundId === json.payload.roundId) {
+					if( store.state.gameInfo.roundId === json.payload.roundId ) {
 						// TODO:カウントダウン表示処理
 					}
 					break;
 				case GAME_START:		// ゲーム開始
-					if(store.state.gameInfo.roundId === json.payload.roundId) {
+					if( store.state.gameInfo.roundId === json.payload.roundId ) {
 						store.state.screenInfo.isPlaying	= true;
 						store.state.input.wordsIndex		= 0;
 						store.state.input.startTime			= new Date();
+						store.state.input.roundId			= store.state.gameInfo.roundId;
 						store.state.screenInfo.typing 		= '';
 					}
 					break;
@@ -146,7 +147,8 @@ const app = new Vue({
 	computed:{
 		dispViewWord : function()
 		{
-			if( store.state.gameInfo.words.length > store.state.input.wordsIndex)
+			if(	( store.state.input.wordsIndex >= 0									)
+			&&	( store.state.gameInfo.words.length > store.state.input.wordsIndex	) )
 			{
 				return store.state.gameInfo.words[store.state.input.wordsIndex].view;
 			}
@@ -157,7 +159,8 @@ const app = new Vue({
 		},
 		dispTypingWord : function()
 		{
-			if( store.state.gameInfo.words.length > store.state.input.wordsIndex)
+			if(	( store.state.input.wordsIndex >= 0									)
+			&&	( store.state.gameInfo.words.length > store.state.input.wordsIndex	) )
 			{
 				return store.state.gameInfo.words[store.state.input.wordsIndex].typing;
 			}

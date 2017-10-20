@@ -10,9 +10,6 @@
   <div id="app">
     <!-- チーム選択画面 -->
     <template v-if="userInfo.team ==='INVALID'">
-      <!--
-      <p><el-input v-on:change="inputUserName" placeholder="社員番号 or お名前の入力"></el-input></p>
-      -->
       <p><el-input :value="userInfo.userName" v-model="userInfo.userName" placeholder="社員番号 or お名前の入力"></el-input></p>
       <template v-if="userInfo.userName !== ''">
         <el-button type="primary" size="large" v-on:click="selectTeam( '春' )">春</el-button>
@@ -37,7 +34,7 @@
           v-on:change="typing"
           :value="screenInfo.typing"
           v-model="screenInfo.typing"
-          placeholder=""
+          :placeholder="dispTypingWord"
           :disabled="!screenInfo.isPlaying">
         </el-input>
       </p>
