@@ -1,128 +1,206 @@
 /**
- * 状態管理オブジェクトの定義
- * 画面はこの値を参照して描写を変える
- */
-const store = {
-	debug	: false,
-	state 	: {
-		gameInfo	: {
-			limitSec	: -1,
-			roundId		: '',
-			roundName	: '',
-			words		: []
+* オブジェクト定義
+*/
+
+	/**
+	 * 状態管理オブジェクトの定義
+	 * 画面はこの値を参照して描写を変える
+	 */
+	const store = {
+		debug	: false,
+		state 	: {
+			gameInfo	: {
+				limitSec	: -1,
+				roundId		: '',
+				roundName	: '',
+				words		: []
+			},
+			summary			: []
 		},
-		summary			: []
-	},
 
-	initGameInfo()
-	{
-		this.state.gameInfo.limitSec			= -1;
-		this.state.gameInfo.roundId				= '';
-		this.state.gameInfo.limroundNameitSec 	= '';
-		this.state.gameInfo.words 				= [];
-	}
-};
-
-
-/**
- * PUBNUBインスタンスの初期化とsubscribe設定
- */
-	// PUBNUBの初期化処理
-	var pubnub = PUBNUB.init({
-		publish_key:    PUBLISH_KEY,
-		subscribe_key:  SUBSCRIBE_KEY
-	});
-
-// PUBNUBからのメッセージをsubscribeし、受け取った際の動作を設定する
-// Game Master操作用画面からpublishを受け取る
-pubnub.subscribe({
-	channel: GAME_CONTROL,
-	message: function( message ){
-		json = JSON.parse( message );
-		console.dir(json);
-		switch( json.type )
+		initGameInfo()
 		{
-			case GAME_START:		// ゲーム開始
-				/**
-				 * ①ゲームの情報をpublish
-				 * ②開始までのカウントダウンをpublish
-				 * ③ゲーム開始をpublish
-				 * ④試合時間を過ぎたらゲーム終了をpublish
-				 */
-				store.state.gameInfo 			= json.payload;
-				store.state.gameInfo.roundId	= generateUUID();
-				// 集計準備
-				store.state.summary[store.state.gameInfo.roundId] = [];
-				const sendInfo = {
+			this.state.gameInfo.limitSec			= -1;
+			this.state.gameInfo.roundId				= '';
+			this.state.gameInfo.limroundNameitSec 	= '';
+			this.state.gameInfo.words 				= [];
+		}
+	};
+
+
+	/**
+	* PubNubへのpublishオブジェクトを返す高階関数
+	*/
+	function Publisher(pubnub){
+		return {
+			/**
+			* GAME_INFOイベントのpublisher
+			* @param {Object} info game情報
+			*/
+			gameInfo:function(info){
+				var sendInfo = {
 					type	: GAME_INFO,
-					payload	: store.state.gameInfo
+					payload	: info
 				};
+
 				pubnub.publish({
 					channel: GAME_PROGRESS,
 					message: JSON.stringify( sendInfo )
 				});
-
-				// TODO:カウントダウン処理めんどいので後で実装。。。
+			},
+			/**
+			* GAME_STARTイベントのpublisher
+			* @param {String} roundId ラウンドのID
+			*/
+			gameStart:function(roundId){
 				const sendStart = {
 					type	: GAME_START,
 					payload	: {
-						roundId	: store.state.gameInfo.roundId
+						roundId	: roundId
 					}
 				};
 				pubnub.publish({
 					channel: GAME_PROGRESS,
 					message: JSON.stringify( sendStart )
 				});
-				break;
-			case GAME_FINISH:		// ゲーム終了
-				// ゲーム終了
+			},
+			/**
+			* GAME_FINISHイベントのpublisher
+			* @param {String} roundId ラウンドのID
+			*/
+			gameFinish:function(roundId){
 				const sendData = {
 					type	: GAME_FINISH,
 					payload	: {
-						roundId	: store.state.gameInfo.roundId
+						roundId	: roundId
 					}
 				};
 				pubnub.publish({
 					channel: GAME_PROGRESS,
 					message: JSON.stringify( sendData )
 				});
-
-				store.initGameInfo();
-				break;
-			default :
-				break;
-		}
+			}
+		};
 	}
-});
 
-// プレイヤー画面からのメッセージを受け取る
-pubnub.subscribe({
-	channel: ANSWER,
-	message: function( message ){
-		json = JSON.parse( message );
-		console.dir(json);
-		switch( json.type )
-		{
-			case INPUT_FINISH:		// 単語入力完了
+	/**
+	* PubNubからのsubscribe時のイベント群を返す高階関数
+	*/
+	function SubscribeEvents(store,publisher){
+		return {
+			/**
+			* GAME_STARTイベントのハンドラ
+			* @param {Object} message イベントメッセージ
+			*/
+			onGameStart:function(message){
+				/**
+				 * ①ゲームの情報をpublish
+				 * ②開始までのカウントダウンをpublish
+				 * ③ゲーム開始をpublish
+				 * ④試合時間を過ぎたらゲーム終了をpublish
+				 */
+				var gameInfo = message.payload;
+				var roundId = generateUUID();
+				gameInfo.roundId	= roundId;
+				store.state.gameInfo 			= gameInfo;
+				// 集計準備
+				store.state.summary[roundId] = [];
+
+				publisher.gameInfo(gameInfo);
+
+				// TODO:カウントダウン処理めんどいので後で実装。。。
+				publisher.gameStart(roundId);
+			},
+			/**
+			* GAME_FINISHイベントのハンドラ
+			* @param {Object} message イベントメッセージ
+			*/
+			onGameFinish:function(message){
+				publisher.gameFinish(store.state.gameInfo.roundId);
+				store.initGameInfo();
+			},
+			/**
+			* INPUT_FINISHイベントのハンドラ
+			* @param {Object} message イベントメッセージ
+			*/
+			onInputFinish:function(message){
 				// 単語情報のため込み
 				// TODO:カッコイイ方法ないか。。。
 				//store.state.summary[store.state.gameInfo.roundId][json.payload.userInfo.team][json.payload.userInfo.userId] =  json.payload;
-				break;
-			default :
-				break;
-		}
+			}
+		};
 	}
-});
 
 
 
 /**
-* メインのVueコンポーネント
+* メイン処理
 */
-const app = new Vue({
-	el 		: "#app",
-	data	: store.state,
-	methods : {
 
-	}
-});
+	/**
+	* メインのVueコンポーネント
+	*/
+	const app = new Vue({
+		el 		: "#app",
+		data	: store.state,
+		methods : {
+
+		}
+	});
+
+	/**
+	 * PUBNUBインスタンスの初期化とsubscribe設定
+	 */
+	// PUBNUBの初期化処理
+	var pubnub = PUBNUB.init({
+		publish_key:    PUBLISH_KEY,
+		subscribe_key:  SUBSCRIBE_KEY
+	});
+
+	//PubNubへのpublishオブジェクトのインスタンス
+	const publisher = Publisher(pubnub);
+
+	//PUBNUBからのsubscribe時のイベント群
+	const subscribeEvents = SubscribeEvents(store,publisher);
+
+	/**
+	* PubNub制御
+	*/
+
+	// PUBNUBからのメッセージをsubscribeし、受け取った際の動作を設定する
+	// Game Master操作用画面からpublishを受け取る
+	pubnub.subscribe({
+		channel: GAME_CONTROL,
+		message: function( message ){
+			json = JSON.parse( message );
+			console.dir(json);
+			switch( json.type )
+			{
+				case GAME_START:		// ゲーム開始
+					subscribeEvents.onGameStart(json);
+					break;
+				case GAME_FINISH:		// ゲーム終了
+					subscribeEvents.onGameFinish(json);
+					break;
+				default :
+					break;
+			}
+		}
+	});
+
+	// プレイヤー画面からのメッセージを受け取る
+	pubnub.subscribe({
+		channel: ANSWER,
+		message: function( message ){
+			json = JSON.parse( message );
+			console.dir(json);
+			switch( json.type )
+			{
+				case INPUT_FINISH:		// 単語入力完了
+					subscribeEvents.onInputFinish(json);
+					break;
+				default :
+					break;
+			}
+		}
+	});
