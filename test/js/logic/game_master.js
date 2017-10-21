@@ -161,6 +161,8 @@
 * PublisherのUnit Test
 */
   test("Publisher#gameInfo",function(){
+    expect(1);
+
     var dummyGameInfo = {
       roundId:"dummyRoundId",
       roundName:"単体テストラウンド",
@@ -192,6 +194,8 @@
   });
 
   test("Publisher#gameStart",function(){
+    expect(1);
+
     var dummyRoundId = "dummyRoundId";
 
     var mockPubNub = {
@@ -216,6 +220,8 @@
   });
 
   test("Publisher#gameFinish",function(){
+    expect(1);
+
     var dummyRoundId = "dummyRoundId";
 
     var mockPubNub = {
@@ -244,6 +250,8 @@
 */
 
   test("SubscribeEvents#onGameStart",function() {
+    expect(7);
+
     var dummyRoundId = "dummyRoundId";
 
     var dummyMessage = {
@@ -270,6 +278,9 @@
       },
       setRoundRunning(roundId){
         equal(roundId,dummyRoundId,"store#setRoundRunningの呼び出し");
+      },
+      setRoundFinish(roundId){
+        equal(roundId,dummyRoundId,"store#setRoundFinishの呼び出し");
       }
     };
 
@@ -282,6 +293,9 @@
       },
       gameStart:function(roundId){
         equal(roundId,dummyRoundId,"GAME_STARTのpublish");
+      },
+      gameFinish:function(roundId){
+        equal(roundId,dummyRoundId,"GAME_FINISHのpublish");
       }
     }
 
@@ -290,52 +304,77 @@
       return dummyRoundId;
     };
 
-    var subscribeEvents = SubscribeEvents(mockStore,mockPublisher,mockIdGenerator);
+    var mockRoundTimeKeeperManager = {
+      new : function(){
+        return new (function(){
+          this.onStartCallback = function(){};
+          this.onReadyCallback = function(){};
+          this.onTimeProceedCallback = function(){};
+          this.onEndCallback = function(){};
+
+          this.onStart = function(cb){
+            this.onStartCallback = cb;
+            return this;
+          }
+
+          this.onReady = function(cb){
+            this.onReadyCallback = cb;
+            return this;
+          }
+
+          this.onTimeProceed = function(cb){
+            this.onTimeProceedCallback = cb;
+            return this;
+          }
+
+          this.onEnd = function(cb){
+            this.onEndCallback = cb;
+            return this;
+          }
+
+          this.start = function(){
+            this.onReadyCallback();
+            this.onTimeProceed(1,1);
+            this.onStartCallback();
+            this.onEndCallback();
+          }
+        })();
+      }
+    }
+
+    var subscribeEvents = SubscribeEvents(mockStore,mockPublisher,mockIdGenerator,mockRoundTimeKeeperManager);
 
     subscribeEvents.onGameStart(dummyMessage);
   });
 
   test("SubscribeEvents#onGameFinish",function(){
-    var dummyRoundId = "dummyRoundId";
+    expect(1);
 
     var dummyMessage = {
-      type:GAME_FINISH,
-      payload:{
-        roundId:dummyRoundId
-      }
+      type:GAME_FINISH
     };
 
     var mockStore = {
       state:{
         rounds:{}
-      },
-      getRunningRound(){
-        ok(true,"store#getRunningRoundの呼び出し");
+      }
+    };
+
+    var mockPublisher = {};
+
+    var mockIdGenerator = {}
+
+    var mockRoundTimeKeeperManager = {
+      get : function(){
         return {
-          roundId:dummyRoundId,
-          roundName:"単体テストラウンド",
-          words:[
-              {view:"単体テスト",typing:"たんたいてすと"},
-              {view:"ユニットテスト",typing:"ゆにっとてすと"}
-          ]
-        };
-      },
-      setRoundFinish(roundId){
-        equal(roundId,dummyRoundId,"store#setRoundFinishの呼び出し");
+          end : function(){
+            ok(true,"RoundTimeKeeper#endの呼び出し");
+          }
+        }
       }
-    };
-
-    var mockPublisher = {
-      gameFinish:function(roundId){
-        equal(roundId,dummyRoundId,"GAME_FINISHのpublish");
-      }
-    };
-
-    var mockIdGenerator = function(){
-      return dummyRoundId;
     }
 
-    var subscribeEvents = SubscribeEvents(mockStore,mockPublisher,mockIdGenerator);
+    var subscribeEvents = SubscribeEvents(mockStore,mockPublisher,mockIdGenerator,mockRoundTimeKeeperManager);
 
     subscribeEvents.onGameFinish(dummyMessage);
   });
@@ -416,4 +455,35 @@
       }
       ,4000
     )
+  });
+
+/**
+* RoundTimeKeeperManagerのテスト
+*/
+
+  test("RoundTimeKeeperManager#new",function(){
+    var roundTimeKeeperManager = new RoundTimeKeeperManager(3,180);
+
+    var obj1 = roundTimeKeeperManager.new();
+
+    ok(obj1 instanceof RoundTimeKeeper, "1回目の呼び出しでRoundTimeKeeperの取得");
+
+    var obj2 = roundTimeKeeperManager.new();
+
+    ok(obj2 instanceof RoundTimeKeeper, "2回目の呼び出しでRoundTimeKeeperの取得");
+
+    ok(obj1 !== obj2, "1回目と２回目でインスタンスが異なる");
+  });
+
+  test("RoundTimeKeeperManager#get",function(){
+    var roundTimeKeeperManager = new RoundTimeKeeperManager(3,180);
+
+    ok(roundTimeKeeperManager.get() === null, "インスタンスが作られていない場合はnullが返る");
+
+    var obj1 = roundTimeKeeperManager.new();//インスタンスの作成
+
+    var obj2 = roundTimeKeeperManager.get();
+
+    ok(obj2 instanceof RoundTimeKeeper, "インスタンスが作られている場合は取得できる");
+    ok(obj1 === obj2, "newメソッドで最後に作成されたものと同一インスタンスである");
   });
