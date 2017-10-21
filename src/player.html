@@ -25,22 +25,31 @@
 
     <!-- タイピング画面 -->
     <template v-else>
-      <el-row><img :src="getTeamImage" class="image"> {{userInfo.userName}}</el-row>
-      <template v-if="screenInfo.isPlaying">
+      <el-row>
+          <el-col>
+            <img :src="getTeamImage" class="image">
+          </el-col>
+          <el-col>
+            {{userInfo.userName}}さん
+          </el-col>
+      </el-row>
+      <template v-if="isRoundReady">
+        <p icon='el-icon-loading'>ラウンド開始までしばらくお待ちください。</p>
+      </template>
+      <template v-else>
         <el-progress :percentage="calcTypingProgress" status="success"></el-progress>
         {{dispTypingWord}}<br>
         {{dispViewWord}}
       </template>
-      <template v-else>
-        <p icon='el-icon-loading'>準備中</p>
-      </template>
       <p>
         <el-input
-          v-on:change="typing"
-          :value="screenInfo.typing"
-          v-model="screenInfo.typing"
+          v-on:change ="typing"
+          :value      ="screenInfo.typing"
+          v-model     ="screenInfo.typing"
           :placeholder="dispTypingWord"
-          :disabled="!screenInfo.isPlaying">
+          v-loading   ="!isRoundRunning"
+          element-loading-text="準備中..."
+          :disabled   ="!isRoundRunning">
         </el-input>
       </p>
     </template>
