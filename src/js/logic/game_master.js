@@ -1,4 +1,17 @@
 /**
+* 定数定義
+*/
+	//1ラウンドあたりの時間
+	const ROUND_TIME_SEC = 180;
+
+	//ラウンドの状態
+	const ROUND_STATUS = {
+		READY:"READY", //準備中
+		RUNNING:"RUNNING",//実行中
+		FINISH:"FINISH"//完了
+	}
+
+/**
 * オブジェクト定義
 */
 
@@ -9,21 +22,73 @@
 	const store = {
 		debug	: false,
 		state 	: {
-			gameInfo	: {
-				limitSec	: -1,
-				roundId		: '',
-				roundName	: '',
-				words		: []
-			},
-			summary			: []
+			rounds:{}
+		},
+		/**
+		* roundを追加する
+		* @param {Object} roundinfo コントローラから渡されたラウンド情報
+		*/
+		addRound(roundinfo){
+			this.state.rounds[roundinfo.roundId] = Object.assign({},roundinfo,{
+				status:ROUND_STATUS.READY,
+				remainsSec:ROUND_TIME_SEC,
+				players:{
+					SPRING:{},
+					SUMMER:{},
+					AUTUMN:{},
+					WINTER:{}
+				},
+				score:{
+					SPRING:0,
+					SUMMER:0,
+					AUTUMN:0,
+					WINTER:0
+				}
+			});
 		},
 
-		initGameInfo()
-		{
-			this.state.gameInfo.limitSec			= -1;
-			this.state.gameInfo.roundId				= '';
-			this.state.gameInfo.limroundNameitSec 	= '';
-			this.state.gameInfo.words 				= [];
+		/**
+		* 指定されたラウンドを実行中にする
+		* @param {String} roundId 実行中にするラウンドID
+		*/
+		setRoundRunning(roundId){
+			var round = this.state.rounds[roundId];
+			if(round){
+				if(round.status === ROUND_STATUS.READY){
+					round.status = ROUND_STATUS.RUNNING;
+				}
+			}
+		},
+
+		/**
+		* 指定されたラウンドを完了する
+		* @param {String} roundId 完了するラウンドID
+		*/
+		setRoundFinish(roundId){
+			var round = this.state.rounds[roundId];
+			if(round){
+				round.status = ROUND_STATUS.FINISH;
+				round.remainsSec = 0;
+			}
+		},
+
+		/**
+		* 現在実行中のラウンドを取得する
+		* @return {Object} 実行中のラウンド。なければnull。
+		*/
+		getRunningRound(){
+			var self = this;
+			var runningRounds = Object.keys(this.state.rounds).map(function(key){
+				return self.state.rounds[key];
+			}).filter(function(round){
+				return round.status === ROUND_STATUS.RUNNING;
+			});
+
+			if(runningRounds.length === 1){
+				return this.state.rounds[runningRounds[0].roundId];
+			}else{
+				return null;
+			}
 		}
 	};
 
@@ -103,16 +168,15 @@
 				 * ③ゲーム開始をpublish
 				 * ④試合時間を過ぎたらゲーム終了をpublish
 				 */
-				var gameInfo = message.payload;
+				var roundInfo = message.payload;
 				var roundId = idGenerator();
-				gameInfo.roundId	= roundId;
-				store.state.gameInfo 			= gameInfo;
-				// 集計準備
-				store.state.summary[roundId] = [];
+				roundInfo.roundId	= roundId;
+				store.addRound(roundInfo);
 
-				publisher.gameInfo(gameInfo);
+				publisher.gameInfo(roundInfo);
 
 				// TODO:カウントダウン処理めんどいので後で実装。。。
+				store.setRoundRunning(roundId);
 				publisher.gameStart(roundId);
 			},
 			/**
@@ -120,8 +184,11 @@
 			* @param {Object} message イベントメッセージ
 			*/
 			onGameFinish:function(message){
-				publisher.gameFinish(store.state.gameInfo.roundId);
-				store.initGameInfo();
+				var runningRound = store.getRunningRound();
+				if(runningRound){
+					store.setRoundFinish(runningRound.roundId);
+					publisher.gameFinish(runningRound.roundId);
+				}
 			},
 			/**
 			* INPUT_FINISHイベントのハンドラ
