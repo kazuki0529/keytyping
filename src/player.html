@@ -11,23 +11,28 @@
     <!-- チーム選択画面 -->
     <template v-if="userInfo.team ==='INVALID'">
       <p><el-input :value="userInfo.userName" v-model="userInfo.userName" placeholder="社員番号 or お名前の入力"></el-input></p>
-      <template v-if="userInfo.userName !== ''">
-        <el-button type="primary" size="large" v-on:click="selectTeam( '春' )">春</el-button>
-        <el-button type="primary" size="large" v-on:click="selectTeam( '夏' )">夏</el-button>
-        <el-button type="primary" size="large" v-on:click="selectTeam( '秋' )">秋</el-button>
-        <el-button type="primary" size="large" v-on:click="selectTeam( '冬' )">冬</el-button>
-      </template>
+        <el-row>
+          <transition
+            v-for="( team, index ) in screenInfo.teamList"
+            :key="index"
+            name="el-zoom-in-center">
+            <el-button type="text" v-show="userInfo.userName !== ''" size="large" v-on:click="selectTeam( team.value )">
+              <img :src="team.image" class="image">
+            </el-button>
+          </transition>
+        </el-row>
     </template>
 
     <!-- タイピング画面 -->
     <template v-else>
-      <p>{{userInfo.team}}：{{userInfo.userName}}</p>
+      <el-row><img :src="getTeamImage" class="image"> {{userInfo.userName}}</el-row>
       <template v-if="screenInfo.isPlaying">
+        <el-progress :percentage="calcTypingProgress" status="success"></el-progress>
         {{dispTypingWord}}<br>
         {{dispViewWord}}
       </template>
       <template v-else>
-        <p>準備中</p>
+        <p icon='el-icon-loading'>準備中</p>
       </template>
       <p>
         <el-input
@@ -45,8 +50,6 @@
   <script src="https://unpkg.com/vue/dist/vue.js"></script>
   <!-- element-ui -->
   <script src="https://unpkg.com/element-ui/lib/index.js"></script>
-  <!-- jquerry -->
-  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
   <!-- PUBNUB -->
   <script src="https://cdn.pubnub.com/pubnub.min.js"></script>
   <!-- app script-->
