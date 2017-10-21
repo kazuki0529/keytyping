@@ -24,11 +24,16 @@ const store = {
 		}
 	},
 
-	debugConsole(){
+	debugConsole()
+	{
 		if(this.debug){
 			console.dir(this.state);
 		}
 	},
+	gameStart( words )
+	{
+		this.state.gameInfo.words = words;
+	}
 };
 
 
@@ -49,7 +54,8 @@ $(document).ready(function(){
 		channel: GAME_PROGRESS,
 		message: function( message ){
 			json = JSON.parse( message );
-			console.dir(json);
+			console.log( json.type );
+			console.dir( json.payload );
 			switch( json.type )
 			{
 				case GAME_INFO:			// ゲーム情報
@@ -81,7 +87,7 @@ const app = new Vue({
 	methods : {
 		gameStart :
 			function() {
-				store.state.gameInfo.words = JSON.parse(store.state.screenInfo.wordsString);
+				store.gameStart( JSON.parse( store.state.screenInfo.wordsString ) );
 				const sendData = {
 					type	: GAME_START,
 					payload	: store.state.gameInfo
@@ -89,6 +95,12 @@ const app = new Vue({
 				pubnub.publish({
 					channel: GAME_CONTROL,
 					message: JSON.stringify( sendData )
+				});
+
+				this.$notify({
+					title	: 'Success',
+					message	: 'ゲーム開始メッセージを送信しました。',
+					type	: 'success'
 				});
 			},
 		gameFinish :
@@ -100,6 +112,12 @@ const app = new Vue({
 				pubnub.publish({
 					channel: GAME_CONTROL,
 					message: JSON.stringify( sendData )
+				});
+
+				this.$notify({
+					title	: 'Success',
+					message	: 'ゲーム終了メッセージを送信しました。',
+					type	: 'success'
 				});
 			}
 	}
