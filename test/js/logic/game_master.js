@@ -339,3 +339,81 @@
 
     subscribeEvents.onGameFinish(dummyMessage);
   });
+
+/**
+* RoundTimeKeeperのunit test
+*/
+  asyncTest("RoundTimeKeeper#start",function(){
+    var readySec = 3;
+    var gameSec = 5;
+
+    var timeProceedCount = 0;
+    var readyCount = 0;
+    var startCount = 0;
+    var endCount = 0;
+
+    var timeKeeper = new RoundTimeKeeper(readySec,gameSec);
+
+    timeKeeper
+      .onReady(function(){
+        readyCount += 1;
+      })
+      .onStart(function(){
+        startCount += 1;
+      })
+      .onEnd(function(){
+        endCount += 1;
+
+        equal(timeProceedCount,readySec + gameSec,"時間経過callback");
+        equal(readyCount,1,"準備callback");
+        equal(startCount,1,"ゲーム開始callback");
+        equal(endCount,1,"ゲーム終了callback");
+        //次のテストの再開
+        start();
+      })
+      .onTimeProceed(function(){
+        timeProceedCount += 1;
+      })
+      .start();
+  });
+
+  asyncTest("RoundTimeKeeper#stop",function(){
+    var readySec = 3;
+    var gameSec = 5;
+
+    var timeProceedCount = 0;
+    var readyCount = 0;
+    var startCount = 0;
+    var endCount = 0;
+
+    let timeKeeper = new RoundTimeKeeper(readySec,gameSec);
+
+    timeKeeper
+      .onReady(function(){
+        readyCount += 1;
+      })
+      .onStart(function(){
+        startCount += 1;
+      })
+      .onEnd(function(){
+        endCount += 1;
+        equal(readyCount,1,"準備完了callback");
+        equal(startCount,1,"ゲーム開始callback");
+        equal(endCount,1,"ゲーム終了callback");
+        ok(timeProceedCount < readySec + gameSec,"ゲームの強制終了");
+        //次のテストの再開
+        start();
+      })
+      .onTimeProceed(function(readySec,gameSec){
+        timeProceedCount += 1;
+      })
+      .start();
+
+    //5秒後に強制終了
+    setTimeout(
+      function(){
+        timeKeeper.stop();
+      }
+      ,4000
+    )
+  });

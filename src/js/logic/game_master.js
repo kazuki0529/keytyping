@@ -201,8 +201,119 @@
 			}
 		};
 	}
+	/**
+	* ゲーム時間のタイムキーパーオブジェクト
+	* @param {int} readySec 準備時間(秒)
+	* @param {int} gameSec ゲーム実行時間(秒)
+	*/
+	function RoundTimeKeeper(readySec,gameSec){
+		//準備時間
+		this.readySec = readySec;
+		//ゲーム実行時間
+		this.gameSec = gameSec;
+		//タイマーのtick
+		this.deltaSec = 1;
+
+		//準備時間に入った時のcallback
+		this.onReadyCallback = function(){};
+		//ゲーム開始した際のcallback
+		this.onStartCallback = function(){};
+		//ゲーム終了した際のcallback
+		this.onEndCallback = function(){};
+		//時間が経過した際のcallback
+		this.onTimeProceedCallback = function(){};
+
+		//jsのタイマーID
+		this.currentTimerId = null;
+
+		/**
+		* 準備時間callbackの設定メソッド
+		* @param {function} cb callback
+		* @return this(メソッドチェーン)
+		*/
+		this.onReady = function(cb){
+			this.onReadyCallback = cb;
+			return this;
+		}
+
+		/**
+		* ゲーム開始callbackの設定メソッド
+		* @param {function} cb callback
+		* @return this(メソッドチェーン)
+		*/
+		this.onStart = function(cb){
+			this.onStartCallback = cb;
+			return this;
+		}
+
+		/**
+		* ゲーム終了callbackの設定メソッド
+		* @param {function} cb callback
+		* @return this(メソッドチェーン)
+		*/
+		this.onEnd = function(cb){
+			this.onEndCallback = cb;
+			return this;
+		}
+
+		/**
+		* 時間経過callbackの設定メソッド
+		* @param {function} cb callback
+		* @return this(メソッドチェーン)
+		*/
+		this.onTimeProceed = function(cb){
+			this.onTimeProceedCallback = cb;
+			return this;
+		}
+
+		/**
+		* タイマースタート
+		*/
+		this.start = function(){
+			this.onReadyCallback();
+
+			var self = this;
+			this.currentTimerId = setInterval(
+				function(){
 
 
+					if(self.readySec > 0){
+						//準備中
+						self.readySec = self.readySec - 1;
+						self.onTimeProceedCallback(self.readySec,self.gameSec);
+						if(self.readySec === 0){
+							self.onStartCallback();
+						}
+					}else if(self.gameSec > 0){
+						//実行中
+						self.gameSec = self.gameSec - 1;
+						self.onTimeProceedCallback(self.readySec,self.gameSec);
+						if(self.gameSec === 0){
+							self.onEndCallback();
+						}
+					}else{
+						self.stopTimer();
+					}
+				}
+				,this.deltaSec * 1000
+			)
+		}
+
+		/**
+		* タイマー(強制)ストップ
+		*/
+		this.stop = function(){
+			this.stopTimer();
+			this.onEndCallback();
+		}
+
+		/**
+		* jsのタイマー処理のクリア
+		*/
+		this.stopTimer = function(){
+			clearInterval(this.currentTimerId);
+		}
+	}
 
 /**
 * メイン処理
