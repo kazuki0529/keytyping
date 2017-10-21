@@ -30,6 +30,7 @@
 
 	/**
 	* PubNubへのpublishオブジェクトを返す高階関数
+	* @param {Object} pubnub PubNubオブジェクト
 	*/
 	function Publisher(pubnub){
 		return {
@@ -85,8 +86,11 @@
 
 	/**
 	* PubNubからのsubscribe時のイベント群を返す高階関数
+	* @param {Object} store storeオブジェクト
+	* @param {Object} publisher Publisherオブジェクト
+	* @param {function} idGenerator UUID作成関数
 	*/
-	function SubscribeEvents(store,publisher){
+	function SubscribeEvents(store,publisher,idGenerator){
 		return {
 			/**
 			* GAME_STARTイベントのハンドラ
@@ -100,7 +104,7 @@
 				 * ④試合時間を過ぎたらゲーム終了をpublish
 				 */
 				var gameInfo = message.payload;
-				var roundId = generateUUID();
+				var roundId = idGenerator();
 				gameInfo.roundId	= roundId;
 				store.state.gameInfo 			= gameInfo;
 				// 集計準備
@@ -137,70 +141,73 @@
 * メイン処理
 */
 
-	/**
-	* メインのVueコンポーネント
-	*/
-	const app = new Vue({
-		el 		: "#app",
-		data	: store.state,
-		methods : {
+	//unit test時は実行しない
+	if(location.href.indexOf("test") === -1){
+		/**
+		* メインのVueコンポーネント
+		*/
+		const app = new Vue({
+			el 		: "#app",
+			data	: store.state,
+			methods : {
 
-		}
-	});
-
-	/**
-	 * PUBNUBインスタンスの初期化とsubscribe設定
-	 */
-	// PUBNUBの初期化処理
-	var pubnub = PUBNUB.init({
-		publish_key:    PUBLISH_KEY,
-		subscribe_key:  SUBSCRIBE_KEY
-	});
-
-	//PubNubへのpublishオブジェクトのインスタンス
-	const publisher = Publisher(pubnub);
-
-	//PUBNUBからのsubscribe時のイベント群
-	const subscribeEvents = SubscribeEvents(store,publisher);
-
-	/**
-	* PubNub制御
-	*/
-
-	// PUBNUBからのメッセージをsubscribeし、受け取った際の動作を設定する
-	// Game Master操作用画面からpublishを受け取る
-	pubnub.subscribe({
-		channel: GAME_CONTROL,
-		message: function( message ){
-			json = JSON.parse( message );
-			console.dir(json);
-			switch( json.type )
-			{
-				case GAME_START:		// ゲーム開始
-					subscribeEvents.onGameStart(json);
-					break;
-				case GAME_FINISH:		// ゲーム終了
-					subscribeEvents.onGameFinish(json);
-					break;
-				default :
-					break;
 			}
-		}
-	});
+		});
 
-	// プレイヤー画面からのメッセージを受け取る
-	pubnub.subscribe({
-		channel: ANSWER,
-		message: function( message ){
-			json = JSON.parse( message );
-			console.dir(json);
-			switch( json.type )
-			{
-				case INPUT_FINISH:		// 単語入力完了
-					subscribeEvents.onInputFinish(json);
-					break;
-				default :
-					break;
+		/**
+		 * PUBNUBインスタンスの初期化とsubscribe設定
+		 */
+		// PUBNUBの初期化処理
+		var pubnub = PUBNUB.init({
+			publish_key:    PUBLISH_KEY,
+			subscribe_key:  SUBSCRIBE_KEY
+		});
+
+		//PubNubへのpublishオブジェクトのインスタンス
+		const publisher = Publisher(pubnub);
+
+		//PUBNUBからのsubscribe時のイベント群
+		const subscribeEvents = SubscribeEvents(store,publisher,generateUUID);
+
+		/**
+		* PubNub制御
+		*/
+
+		// PUBNUBからのメッセージをsubscribeし、受け取った際の動作を設定する
+		// Game Master操作用画面からpublishを受け取る
+		pubnub.subscribe({
+			channel: GAME_CONTROL,
+			message: function( message ){
+				json = JSON.parse( message );
+				console.dir(json);
+				switch( json.type )
+				{
+					case GAME_START:		// ゲーム開始
+						subscribeEvents.onGameStart(json);
+						break;
+					case GAME_FINISH:		// ゲーム終了
+						subscribeEvents.onGameFinish(json);
+						break;
+					default :
+						break;
+				}
 			}
-		}
-	});
+		});
+
+		// プレイヤー画面からのメッセージを受け取る
+		pubnub.subscribe({
+			channel: ANSWER,
+			message: function( message ){
+				json = JSON.parse( message );
+				console.dir(json);
+				switch( json.type )
+				{
+					case INPUT_FINISH:		// 単語入力完了
+						subscribeEvents.onInputFinish(json);
+						break;
+					default :
+						break;
+				}
+			}
+		});
+	}
