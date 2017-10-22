@@ -96,6 +96,31 @@
 
   });
 
+  test("store#updateRemainsSec",function(){
+    //storeはグローバル変数なのでコピーしてテストする
+    var testStore = Object.assign({},store);
+
+    var dummyRoundId = "dummyRoundId";
+
+    var dummyRoundInfo = {
+      roundId:dummyRoundId,
+      roundName:"単体テストラウンド",
+      words:[
+          {view:"単体テスト",typing:"たんたいてすと"},
+          {view:"ユニットテスト",typing:"ゆにっとてすと"}
+      ]
+    };
+
+    testStore.addRound(dummyRoundInfo);
+
+    testStore.setRoundRunning(dummyRoundId);
+
+    var nextSec = 179;
+    testStore.updateRemainsSec(dummyRoundId,nextSec);
+
+    equal(testStore.state.rounds[dummyRoundId].remainsSec, nextSec, "残り時間の更新");
+  });
+
   test("store#setRoundFinish",function(){
     //storeはグローバル変数なのでコピーしてテストする
     var testStore = Object.assign({},store);
@@ -245,12 +270,73 @@
     publisher.gameFinish(dummyRoundId);
   });
 
+  test("Publisher#gameStartCount",function(){
+    expect(1);
+
+    var dummyRoundId = "dummyRoundId";
+    var nextSec = 3;
+
+    var mockPubNub = {
+      publish:function(message){
+        deepEqual(
+          message,
+          {
+            channel:GAME_PROGRESS,
+            message:JSON.stringify({
+                type:GAME_START_COUNT,
+                payload:{
+                  roundId:dummyRoundId,
+                  remainsSec:nextSec
+                }
+            })
+          },
+          "GAME_START_COUNTのpublish"
+        );
+      }
+    };
+
+    var publisher = Publisher(mockPubNub);
+
+    publisher.gameStartCount(dummyRoundId,nextSec);
+
+  });
+
+  test("Publisher#gameFinishCount",function(){
+    expect(1);
+
+    var dummyRoundId = "dummyRoundId";
+    var nextSec = 179;
+
+    var mockPubNub = {
+      publish:function(message){
+        deepEqual(
+          message,
+          {
+            channel:GAME_PROGRESS,
+            message:JSON.stringify({
+                type:GAME_FINISH_COUNT,
+                payload:{
+                  roundId:dummyRoundId,
+                  remainsSec:nextSec
+                }
+            })
+          },
+          "GAME_FINISH_COUNTのpublish"
+        );
+      }
+    };
+
+    var publisher = Publisher(mockPubNub);
+
+    publisher.gameFinishCount(dummyRoundId,nextSec);
+  });
+
 /**
 * SubscribeEventsのUnit Test
 */
 
   test("SubscribeEvents#onGameStart",function() {
-    expect(7);
+    expect(11);
 
     var dummyRoundId = "dummyRoundId";
 
@@ -281,6 +367,9 @@
       },
       setRoundFinish(roundId){
         equal(roundId,dummyRoundId,"store#setRoundFinishの呼び出し");
+      },
+      updateRemainsSec(roundId,nextSec){
+        ok(roundId === dummyRoundId && nextSec < ROUND_TIME_SEC,"store#updateRemainsSecの呼び出し");
       }
     };
 
@@ -296,6 +385,16 @@
       },
       gameFinish:function(roundId){
         equal(roundId,dummyRoundId,"GAME_FINISHのpublish");
+      },
+      gameStartCount:function(roundId,remainsSec){
+        if(remainsSec === READY_TIME_SEC){
+          equal(roundId,dummyRoundId,"準備開始時のGAME_START_COUNTのpublish");
+        }else if(remainsSec < READY_TIME_SEC){
+          equal(roundId,dummyRoundId,"GAME_START_COUNTの更新");
+        }
+      },
+      gameFinishCount:function(roundId,remainsSec){
+        ok(roundId === dummyRoundId && remainsSec < ROUND_TIME_SEC,"GAME_FINISH_COUNTの更新");
       }
     }
 
@@ -334,7 +433,8 @@
 
           this.start = function(){
             this.onReadyCallback();
-            this.onTimeProceed(1,1);
+            this.onTimeProceedCallback(2,180);
+            this.onTimeProceedCallback(0,179);
             this.onStartCallback();
             this.onEndCallback();
           }

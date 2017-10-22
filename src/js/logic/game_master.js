@@ -63,6 +63,20 @@
 		},
 
 		/**
+		* 残り時間を更新する
+		* @param {String} roundId 対象のラウンドID
+		* @param {int} remainsSec 更新後の残り時間(秒)
+		*/
+		updateRemainsSec(roundId,remainsSec){
+			var round = this.state.rounds[roundId];
+			if(round){
+				if(round.status === ROUND_STATUS.RUNNING){
+					round.remainsSec = remainsSec;
+				}
+			}
+		},
+
+		/**
 		* 指定されたラウンドを完了する
 		* @param {String} roundId 完了するラウンドID
 		*/
@@ -147,7 +161,46 @@
 					channel: GAME_PROGRESS,
 					message: JSON.stringify( sendData )
 				});
-			}
+			},
+			/**
+			* GAME_START_COUNTイベントのpublisher
+			* @param {string} roundId 対象のroundId
+			* @param {int} remainsSec 残り時間(秒)
+			*/
+			gameStartCount(roundId,remainsSec){
+				const sendData = {
+					type: GAME_START_COUNT,
+					payload:{
+						roundId : roundId,
+						remainsSec : remainsSec
+					}
+				};
+
+				pubnub.publish({
+					channel: GAME_PROGRESS,
+					message: JSON.stringify( sendData )
+				});
+			},
+
+			/**
+			* GAME_FINISH_COUNTイベントのpublisher
+			* @param {string} roundId 対象のラウンドID
+			* @param {int} remainsSec 残り時間(秒)
+			*/
+			gameFinishCount(roundId,remainsSec){
+				const sendData = {
+					type: GAME_FINISH_COUNT,
+					payload:{
+						roundId: roundId,
+						remainsSec: remainsSec
+					}
+				};
+
+				pubnub.publish({
+					channel: GAME_PROGRESS,
+					message: JSON.stringify( sendData )
+				});
+			},
 		};
 	}
 
@@ -181,9 +234,15 @@
 					.onReady(function(){
 						store.addRound(roundInfo);
 						publisher.gameInfo(roundInfo);
+						publisher.gameStartCount(roundId,READY_TIME_SEC);
 					})
 					.onTimeProceed(function(readySec,gameSec){
-						//TODO カウントダウン
+						if(readySec > 0){
+							publisher.gameStartCount(roundId,readySec);
+						}else if(gameSec > 0){
+							store.updateRemainsSec(roundId, gameSec);
+							publisher.gameFinishCount(roundId, gameSec);
+						}
 					})
 					.onStart(function(){
 						store.setRoundRunning(roundId);
