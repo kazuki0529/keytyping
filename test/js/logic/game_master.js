@@ -11,6 +11,7 @@
     var dummyRoundInfo1 = {
       roundId:dummyRoundId1,
       roundName:"単体テストラウンド",
+      limitSec:120,
       words:[
           {view:"単体テスト",typing:"たんたいてすと"},
           {view:"ユニットテスト",typing:"ゆにっとてすと"}
@@ -34,7 +35,7 @@
     );
     equal(
       addedRound1.remainsSec
-      ,ROUND_TIME_SEC
+      ,dummyRoundInfo1.limitSec
       ,"残り時間の初期化"
     );
     deepEqual(
@@ -63,6 +64,7 @@
     var dummyRoundInfo2 = {
       roundId:dummyRoundId2,
       roundName:"単体テストラウンド2",
+      limitSec:120,
       words:[
           {view:"単体テスト2",typing:"たんたいてすと"},
           {view:"ユニットテスト2",typing:"ゆにっとてすと"}
@@ -344,6 +346,7 @@
       type:GAME_START,
       payload:{
         roundName:"単体テストラウンド",
+        limitSec:120,
         words:[
             {view:"単体テスト",typing:"たんたいてすと"},
             {view:"ユニットテスト",typing:"ゆにっとてすと"}
@@ -369,7 +372,7 @@
         equal(roundId,dummyRoundId,"store#setRoundFinishの呼び出し");
       },
       updateRemainsSec(roundId,nextSec){
-        ok(roundId === dummyRoundId && nextSec < ROUND_TIME_SEC,"store#updateRemainsSecの呼び出し");
+        ok(roundId === dummyRoundId && nextSec < dummyMessage.payload.limitSec,"store#updateRemainsSecの呼び出し");
       }
     };
 
@@ -394,7 +397,7 @@
         }
       },
       gameFinishCount:function(roundId,remainsSec){
-        ok(roundId === dummyRoundId && remainsSec < ROUND_TIME_SEC,"GAME_FINISH_COUNTの更新");
+        ok(roundId === dummyRoundId && remainsSec < dummyMessage.payload.limitSec,"GAME_FINISH_COUNTの更新");
       }
     }
 
@@ -433,8 +436,8 @@
 
           this.start = function(){
             this.onReadyCallback();
-            this.onTimeProceedCallback(2,180);
-            this.onTimeProceedCallback(0,179);
+            this.onTimeProceedCallback(2,120);
+            this.onTimeProceedCallback(0,119);
             this.onStartCallback();
             this.onEndCallback();
           }
@@ -562,25 +565,25 @@
 */
 
   test("RoundTimeKeeperManager#new",function(){
-    var roundTimeKeeperManager = new RoundTimeKeeperManager(3,180);
+    var roundTimeKeeperManager = new RoundTimeKeeperManager(3);
 
-    var obj1 = roundTimeKeeperManager.new();
+    var obj1 = roundTimeKeeperManager.new(180);
 
-    ok(obj1 instanceof RoundTimeKeeper, "1回目の呼び出しでRoundTimeKeeperの取得");
+    ok(obj1 instanceof RoundTimeKeeper && obj1.readySec === 3 && obj1.gameSec === 180, "1回目の呼び出しでRoundTimeKeeperの取得");
 
-    var obj2 = roundTimeKeeperManager.new();
+    var obj2 = roundTimeKeeperManager.new(120);
 
-    ok(obj2 instanceof RoundTimeKeeper, "2回目の呼び出しでRoundTimeKeeperの取得");
+    ok(obj2 instanceof RoundTimeKeeper && obj2.readySec === 3 && obj2.gameSec === 120, "2回目の呼び出しでRoundTimeKeeperの取得");
 
     ok(obj1 !== obj2, "1回目と２回目でインスタンスが異なる");
   });
 
   test("RoundTimeKeeperManager#get",function(){
-    var roundTimeKeeperManager = new RoundTimeKeeperManager(3,180);
+    var roundTimeKeeperManager = new RoundTimeKeeperManager(3);
 
     ok(roundTimeKeeperManager.get() === null, "インスタンスが作られていない場合はnullが返る");
 
-    var obj1 = roundTimeKeeperManager.new();//インスタンスの作成
+    var obj1 = roundTimeKeeperManager.new(180);//インスタンスの作成
 
     var obj2 = roundTimeKeeperManager.get();
 

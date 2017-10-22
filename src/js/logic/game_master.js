@@ -1,8 +1,6 @@
 /**
 * 定数定義
 */
-	//1ラウンドあたりの時間
-	const ROUND_TIME_SEC = 180;
 	//ラウンド開始前の準備時間(秒)
 	const READY_TIME_SEC = 3;
 
@@ -33,7 +31,7 @@
 		addRound(roundinfo){
 			this.state.rounds[roundinfo.roundId] = Object.assign({},roundinfo,{
 				status:ROUND_STATUS.READY,
-				remainsSec:ROUND_TIME_SEC,
+				remainsSec:roundinfo.limitSec,
 				players:{
 					SPRING:{},
 					SUMMER:{},
@@ -228,7 +226,7 @@
 				var roundId = idGenerator();
 				roundInfo.roundId	= roundId;
 
-				var roundTimeKeeper = roundTimeKeeperManager.new();
+				var roundTimeKeeper = roundTimeKeeperManager.new(roundInfo.limitSec);
 
 				roundTimeKeeper
 					.onReady(function(){
@@ -395,7 +393,7 @@
 	* @param {int} readySec 準備時間（秒）
 	* @param {int} gameSec ゲーム時間(秒)
 	*/
-	function RoundTimeKeeperManager(readySec,gameSec){
+	function RoundTimeKeeperManager(readySec){
 		//RoundTimeKeeperインスタンス
 		this.instance = null;
 
@@ -403,7 +401,7 @@
 		* 既存のインスタンスを破棄して新しいインスタンスを作成する
 		* @return {Object} RoundTimeKeeperインスタンス
 		*/
-		this.new = function(){
+		this.new = function(gameSec){
 			if(this.instance){
 				this.instance.stop();
 				this.instance = null;
@@ -451,7 +449,7 @@
 		//PubNubへのpublishオブジェクトのインスタンス
 		const publisher = Publisher(pubnub);
 
-		const roundTimeKeeperManager = new RoundTimeKeeperManager(READY_TIME_SEC,ROUND_TIME_SEC);
+		const roundTimeKeeperManager = new RoundTimeKeeperManager(READY_TIME_SEC);
 
 		//PUBNUBからのsubscribe時のイベント群
 		const subscribeEvents = SubscribeEvents(store,publisher,generateUUID,roundTimeKeeperManager);
