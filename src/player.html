@@ -5,9 +5,18 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-default/index.css">
+  <style>
+    h1 {
+      background: #EFF2F7;/*背景色*/
+      padding: 0.3em;/*文字まわり（上下左右）の余白*/
+      border-radius: 0.3em;/*角丸*/
+    }
+  </style>
 </head>
 <body>
   <div id="app">
+    <h1>文字早打ちコンテスト</h1>
+
     <!-- チーム選択画面 -->
     <template v-if="userInfo.team ==='INVALID'">
       <p><el-input :value="userInfo.userName" v-model="userInfo.userName" placeholder="社員番号 or お名前の入力"></el-input></p>
@@ -25,14 +34,8 @@
 
     <!-- タイピング画面 -->
     <template v-else>
-      <el-row>
-          <el-col>
-            <img :src="getTeamImage" class="image">
-          </el-col>
-          <el-col>
-            {{userInfo.userName}}さん
-          </el-col>
-      </el-row>
+      <img :src="getTeamImage">
+      {{userInfo.userName}}さん
       <template v-if="isRoundReady">
         <p icon='el-icon-loading'>ラウンド開始までしばらくお待ちください。</p>
       </template>

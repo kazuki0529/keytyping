@@ -18,7 +18,7 @@
 	const store = {
 		debug	: false,
 		state	: {
-			screenInfo :{
+			screenInfo : {
 				typing		: '',			// 入力した文字
 				teamList :[
 					{ image:'./img/spring.png', value : TEAM.SPRING },
@@ -33,7 +33,7 @@
 				userId		: undefined,	// ユーザID（システムが発番）
 				userName	: '',			// ユーザ名
 			},
-			gameInfo	: undefined,		// ゲームマスターから受け取ったゲーム情報
+			roundInfo	: undefined,		// ゲームマスターから受け取ったゲーム情報
 			input		: {
 				roundId		: undefined,	// ラウンドID
 				wordsIndex	: -1,			// 現在入力中である単語の配列番号
@@ -50,22 +50,22 @@
 		{
 			this.state.userInfo.team			= team;
 			this.state.userInfo.userId			= generateUUID();
-			this.state.screenInfo.gameStatus	= ROUND_STATUS.READY;
+			this.state.screenInfo.roundStatus	= ROUND_STATUS.READY;
 		},
 		/**
 		 * ゲーム情報通知
-		 * @param {Object} gameInfo 
+		 * @param {Object} roundInfo 
 		 */
-		notifyGameInfo( gameInfo )
+		notifyRoundInfo( roundInfo )
 		{
-			this.state.gameInfo = Object.assign( {}, gameInfo );
+			this.state.roundInfo = Object.assign( {}, roundInfo );
 		},
 		/**
 		 * ゲーム開始
 		 * 
 		 * @param {string} roundId 
 		 */
-		gameStart( roundId )
+		roundStart( roundId )
 		{
 			this.state.input.roundId			= roundId;
 			this.state.input.wordsIndex			= 0;
@@ -76,7 +76,7 @@
 		/**
 		 * ゲーム終了
 		 */
-		gameFinish()
+		roundFinish()
 		{
 			this.state.screenInfo.roundStatus = ROUND_STATUS.FINISH;
 		},
@@ -86,7 +86,7 @@
 		 */
 		validRound( roundId )
 		{
-			return (this.state.gameInfo.roundId === roundId);
+			return (this.state.roundInfo.roundId === roundId);
 		},
 		/**
 		 * 入力した文字がタイプすべき文字と一致しているかを返す
@@ -95,11 +95,29 @@
 		isMatchTyping( inputString )
 		{
 			// 配列の範囲内かチェック
-			if( this.state.gameInfo.words.length > this.state.input.wordsIndex )
+			if( this.state.roundInfo.words.length > this.state.input.wordsIndex )
 			{
-				return  (inputString === this.state.gameInfo.words[store.state.input.wordsIndex].typing );
+				return  (inputString === this.state.roundInfo.words[store.state.input.wordsIndex].typing );
 			}
 			return false;
+		},
+		/**
+		 * 選択したチームの情報を返す
+		 */
+		getSelectedTeam()
+		{
+			const team = this.state.screenInfo.teamList.filter( function( team ){
+				return team.value === store.state.userInfo.team;
+			});
+
+			if( team.length === 1 )
+			{
+				return team[0];
+			}
+			else
+			{
+				return false;
+			}
 		},
 		/**
 		 * 今入力すべき課題の情報を返す
@@ -107,9 +125,9 @@
 		getNowWord()
 		{
 			if(	( this.state.input.wordsIndex >= 0									)
-			&&	( this.state.gameInfo.words.length > store.state.input.wordsIndex	) )
+			&&	( this.state.roundInfo.words.length > store.state.input.wordsIndex	) )
 			{
-				return store.state.gameInfo.words[store.state.input.wordsIndex];
+				return store.state.roundInfo.words[store.state.input.wordsIndex];
 			}
 			return false;
 		},
@@ -126,6 +144,48 @@
 		isRoundRunning()
 		{
 			return( this.state.screenInfo.roundStatus === ROUND_STATUS.RUNNING );
+		},
+		/**
+		 * 入力の進捗状況を返す
+		 */
+		calcTypingProgress()
+		{
+			if(	( this.state.input.wordsIndex >= 1		)
+			&&	( this.state.roundInfo.words.length > 0 ) )
+			{
+				return ( (this.state.input.wordsIndex * 100 ) / this.state.roundInfo.words.length );
+			}
+			return 0;
+		},
+		/**
+		 * 入力完了
+		 */
+		inputFinish()
+		{
+			this.state.input.finishTime = new Date();
+		},
+		/**
+		 * 次の入力課題を設定
+		 */
+		setNextWord()
+		{
+			this.state.input.wordsIndex++;
+			this.state.input.startTime = new Date();
+			this.state.screenInfo.typing = '';
+		},
+		/**
+		 * 入力情報のgetter
+		 */
+		getInput()
+		{
+			return this.state.input;
+		},
+		/**
+		 * ユーザ情報のgetter
+		 */
+		getUserInfo()
+		{
+			return this.state.userInfo;
 		}
 	};
 
@@ -133,7 +193,6 @@
 /** 以下メイン処理 */
 /**
  * PUBNUBインスタンスの初期化とsubscribe設定
- * publish用にPUBNUBインスタンスをグローバル化（ほかにいい方法ない？）
  */
 	// PUBNUBの初期化処理
 	var pubnub = PUBNUB.init({
@@ -151,13 +210,12 @@
 			switch( json.type )
 			{
 				case GAME_INFO:			// ゲーム情報
-					store.state.gameInfo = json.payload;
+					store.notifyRoundInfo( json.payload );
 					break;
 				case GAME_START_COUNT:	// ゲーム開始までのカウントダウン
 					if( store.validRound( json.payload.roundId ) )
 					{
 						app.$message({
-							type		: 'warning',
 							message		: '開始' + json.payload.remainsSec + '秒前',
 							duration	: DISP_TIME_COUNT_DOWN
 						});
@@ -176,7 +234,7 @@
 				case GAME_START:		// ゲーム開始
 					if( store.validRound( json.payload.roundId ) )
 					{
-						store.gameStart( json.payload.roundId );
+						store.roundStart( json.payload.roundId );
 						app.$message({
 							message		: 'ゲームスタート',
 							duration	: DISP_TIME_COUNT_DOWN
@@ -186,7 +244,7 @@
 				case GAME_FINISH:		// ゲーム終了
 					if( store.validRound( json.payload.roundId ) )
 					{
-						store.gameFinish( json.payload.roundId );
+						store.roundFinish( json.payload.roundId );
 						app.$message({
 							message		: 'ゲーム終了',
 							duration	: DISP_TIME_START_FINISH
@@ -218,12 +276,13 @@
 					// その後、次の単語データがあれば画面に単語データをセット
 					if( store.isMatchTyping( value ) )
 					{
-						store.state.input.finishTime = new Date();
+						store.inputFinish();
+
 						const sendData = {
 							type	: INPUT_FINISH,
 							payload	: {
-								userInfo	: store.state.userInfo,
-								input		: store.state.input
+								userInfo	: store.getUserInfo(),
+								input		: store.getInput()
 							}
 						};
 						pubnub.publish({
@@ -231,8 +290,7 @@
 							message: JSON.stringify( sendData )
 						});
 
-						store.state.input.wordsIndex++;
-						store.state.screenInfo.typing = '';
+						store.setNextWord();
 					}
 				}
 		},
@@ -263,21 +321,14 @@
 			},
 			calcTypingProgress : function()
 			{
-				if(	store.state.input.wordsIndex >= 1 )
-				{
-					return ( (store.state.input.wordsIndex * 100 ) / store.state.gameInfo.words.length );
-				}
-				return 0;
+				return store.calcTypingProgress();
 			},
 			getTeamImage : function()
 			{
-				const team = store.state.screenInfo.teamList.filter( function( team ){
-					return team.value === store.state.userInfo.team;
-				});
-
-				if( team.length === 1 )
+				const team = store.getSelectedTeam();
+				if( team )
 				{
-					return team[0].image;
+					return team.image;
 				}
 				else
 				{
