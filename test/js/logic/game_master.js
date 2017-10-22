@@ -621,8 +621,8 @@
     var mockRoundTimeKeeperManager = {
       get : function(){
         return {
-          end : function(){
-            ok(true,"RoundTimeKeeper#endの呼び出し");
+          stop : function(){
+            ok(true,"RoundTimeKeeper#stopの呼び出し");
           }
         }
       }

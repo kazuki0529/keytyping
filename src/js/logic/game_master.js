@@ -25,6 +25,13 @@
 			rounds:{}
 		},
 		/**
+		* rounds stateを更新する（これをやらないとroundsの変更がvueに反映されない）
+		*/
+		refreshRounds(){
+			this.state.rounds = Object.assign({},this.state.rounds);
+		},
+
+		/**
 		* roundを追加する
 		* @param {Object} roundinfo コントローラから渡されたラウンド情報
 		*/
@@ -45,6 +52,8 @@
 					WINTER:0
 				}
 			});
+
+			this.refreshRounds();
 		},
 
 		/**
@@ -56,6 +65,7 @@
 			if(round){
 				if(round.status === ROUND_STATUS.READY){
 					round.status = ROUND_STATUS.RUNNING;
+					this.refreshRounds();
 				}
 			}
 		},
@@ -70,6 +80,7 @@
 			if(round){
 				if(round.status === ROUND_STATUS.RUNNING){
 					round.remainsSec = remainsSec;
+					this.refreshRounds();
 				}
 			}
 		},
@@ -83,6 +94,7 @@
 			if(round){
 				round.status = ROUND_STATUS.FINISH;
 				round.remainsSec = 0;
+				this.refreshRounds();
 			}
 		},
 
@@ -117,6 +129,7 @@
 				if(round.status === ROUND_STATUS.RUNNING){
 					round.players[playerInfo.userInfo.team][playerInfo.userInfo.userId] = playerInfo;
 					this.calcScore(roundId);
+					this.refreshRounds();
 				}
 			}
 		},
@@ -141,6 +154,7 @@
 						return prev + current;
 					},0);
 				});
+				this.refreshRounds();
 			}
 		}
 	};
@@ -299,7 +313,7 @@
 				var roundTimeKeeper = roundTimeKeeperManager.get();
 
 				if(roundTimeKeeper){
-					roundTimeKeeper.end();
+					roundTimeKeeper.stop();
 				}
 			},
 			/**
