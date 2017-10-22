@@ -184,6 +184,157 @@
 
   });
 
+  test("store#setPlayer",function(){
+    //storeはグローバル変数なのでコピーしてテストする
+    var testStore = Object.assign({},store);
+
+    var dummyRoundId = "dummyRoundId";
+
+    var dummyRoundInfo = {
+      roundId:dummyRoundId,
+      roundName:"単体テストラウンド",
+      limitSec:120,
+      words:[
+          {view:"単体テスト",typing:"たんたいてすと"},
+          {view:"ユニットテスト",typing:"ゆにっとてすと"}
+      ]
+    };
+
+    testStore.addRound(dummyRoundInfo);
+
+    testStore.setRoundRunning(dummyRoundId);
+
+    var dummyPlayerInfo = {
+      userInfo:{
+        team:TEAM.SPRING,
+        userId:"userId1",
+        userName:"ユーザーくん"
+      },
+      input:{
+        roundId:dummyRoundId,
+        wordsIndex:0,
+        startTime:"dummy",
+        finishTime:"dummy"
+      }
+    };
+
+
+    testStore.setPlayer(dummyRoundId,dummyPlayerInfo);
+
+    equal(Object.keys(testStore.state.rounds[dummyRoundId].players[TEAM.SPRING]).length,1,"対象のチームに追加");
+    deepEqual(testStore.state.rounds[dummyRoundId].players[TEAM.SPRING]["userId1"],dummyPlayerInfo,"追加した内容の一致");
+
+    equal(testStore.state.rounds[dummyRoundId].score[TEAM.SPRING],1,"スコア計算");
+
+    var dummyPlayerInfo2 = {
+      userInfo:{
+        team:TEAM.SPRING,
+        userId:"userId1",
+        userName:"ユーザーくん"
+      },
+      input:{
+        roundId:dummyRoundId,
+        wordsIndex:1,
+        startTime:"dummy",
+        finishTime:"dummy"
+      }
+    };
+
+    testStore.setPlayer(dummyRoundId,dummyPlayerInfo2);
+
+    equal(Object.keys(testStore.state.rounds[dummyRoundId].players[TEAM.SPRING]).length,1,"同じPlayerの更新");
+    deepEqual(testStore.state.rounds[dummyRoundId].players[TEAM.SPRING]["userId1"],dummyPlayerInfo2,"更新した内容の一致");
+
+    equal(testStore.state.rounds[dummyRoundId].score[TEAM.SPRING],2,"スコア再計算");
+
+    var dummyPlayerInfo3 = {
+      userInfo:{
+        team:TEAM.SPRING,
+        userId:"userId2",
+        userName:"ユーザーさん"
+      },
+      input:{
+        roundId:dummyRoundId,
+        wordsIndex:0,
+        startTime:"dummy",
+        finishTime:"dummy"
+      }
+    };
+
+    testStore.setPlayer(dummyRoundId,dummyPlayerInfo3);
+
+    equal(Object.keys(testStore.state.rounds[dummyRoundId].players[TEAM.SPRING]).length,2,"同じチームにplayer追加");
+    deepEqual(testStore.state.rounds[dummyRoundId].players[TEAM.SPRING]["userId2"],dummyPlayerInfo3,"追加した内容の一致");
+
+    equal(testStore.state.rounds[dummyRoundId].score[TEAM.SPRING],3,"スコア再計算");
+
+    var dummyPlayerInfo4 = {
+      userInfo:{
+        team:TEAM.SUMMER,
+        userId:"userId3",
+        userName:"ユーザー様"
+      },
+      input:{
+        roundId:dummyRoundId,
+        wordsIndex:0,
+        startTime:"dummy",
+        finishTime:"dummy"
+      }
+    };
+
+    testStore.setPlayer(dummyRoundId,dummyPlayerInfo4);
+
+    equal(Object.keys(testStore.state.rounds[dummyRoundId].players[TEAM.SUMMER]).length,1,"別チームにplayer追加");
+    deepEqual(testStore.state.rounds[dummyRoundId].players[TEAM.SUMMER]["userId3"],dummyPlayerInfo4,"追加した内容の一致");
+
+    equal(testStore.state.rounds[dummyRoundId].score[TEAM.SPRING],3,"スコア再計算");
+    equal(testStore.state.rounds[dummyRoundId].score[TEAM.SUMMER],1,"スコア再計算");
+  });
+
+  test("store#calcScore",function(){
+    //storeはグローバル変数なのでコピーしてテストする
+    var testStore = Object.assign({},store);
+
+    var dummyRoundId = "dummyRoundId";
+
+    var dummyRoundInfo = {
+      roundId:dummyRoundId,
+      roundName:"単体テストラウンド",
+      limitSec:120,
+      words:[
+          {view:"単体テスト",typing:"たんたいてすと"},
+          {view:"ユニットテスト",typing:"ゆにっとてすと"}
+      ]
+    };
+
+    testStore.addRound(dummyRoundInfo);
+
+    testStore.setRoundRunning(dummyRoundId);
+
+    testStore.state.rounds[dummyRoundId].players = {
+      SPRING:{
+        "userId1":{input:{wordsIndex:0}},
+        "userId2":{input:{wordsIndex:1}},
+      },
+      SUMMER:{},
+      AUTUMN:{
+        "userId3":{input:{wordsIndex:1}},
+      },
+      WINTER:{
+        "userId4":{input:{wordsIndex:1}},
+        "userId5":{input:{wordsIndex:0}},
+        "userId6":{input:{wordsIndex:2}}
+      }
+    }
+
+    testStore.calcScore(dummyRoundId);
+
+    equal(testStore.state.rounds[dummyRoundId].score[TEAM.SPRING],3,"春チーム");
+    equal(testStore.state.rounds[dummyRoundId].score[TEAM.SUMMER],0,"夏チーム");
+    equal(testStore.state.rounds[dummyRoundId].score[TEAM.AUTUMN],2,"秋チーム");
+    equal(testStore.state.rounds[dummyRoundId].score[TEAM.WINTER],6,"冬チーム");
+  });
+
 /**
 * PublisherのUnit Test
 */
@@ -482,6 +633,49 @@
     subscribeEvents.onGameFinish(dummyMessage);
   });
 
+  test("SubscribeEvents#onInputFinish",function(){
+    expect(2);
+
+    var dummyRoundId = "dummyRoundId";
+
+    var dummyMessage = {
+      type:INPUT_FINISH,
+      payload:{
+        userInfo:{
+          team:TEAM.SPRING,
+          userId:"userId1",
+          userName:"ユーザーくん"
+        },
+        input:{
+          roundId:dummyRoundId,
+          wordsIndex:0,
+          startTime:"dummy",
+          finishTime:"dummy"
+        }
+      }
+    };
+
+    var mockStore = {
+      state:{
+        rounds:{}
+      },
+      setPlayer(roundId,playerInfo){
+        equal(roundId, dummyRoundId,"IDの一致");
+        deepEqual(playerInfo,dummyMessage.payload,"playerInfoの一致");
+      }
+    };
+
+    var mockPublisher = {};
+
+    var mockIdGenerator = {};
+
+    var mockRoundTimeKeeperManager = {};
+
+    var subscribeEvents = SubscribeEvents(mockStore,mockPublisher,mockIdGenerator,mockRoundTimeKeeperManager);
+
+    subscribeEvents.onInputFinish(dummyMessage);
+  });
+
 /**
 * RoundTimeKeeperのunit test
 */
@@ -551,7 +745,7 @@
       })
       .start();
 
-    //5秒後に強制終了
+    //4秒後に強制終了
     setTimeout(
       function(){
         timeKeeper.stop();

@@ -103,6 +103,45 @@
 			}else{
 				return null;
 			}
+		},
+
+		/**
+		* ラウンドにplayer情報を設定する
+		* @param {string} roundId 対象のラウンドID
+		* @param {Object} playerInfo INPUT_FINISHで送信されたplayer情報
+		*/
+		setPlayer(roundId,playerInfo){
+			var round = this.state.rounds[roundId];
+
+			if(round){
+				if(round.status === ROUND_STATUS.RUNNING){
+					round.players[playerInfo.userInfo.team][playerInfo.userInfo.userId] = playerInfo;
+					this.calcScore(roundId);
+				}
+			}
+		},
+
+		/**
+		* 現在のplayer情報からscoreを(再)計算する
+		* @param {string} roundId 再計算対象のラウンドID
+		*/
+		calcScore(roundId){
+			var round = this.state.rounds[roundId];
+
+			if(round){
+				Object.keys(round.players).forEach(function(team){
+					round.score[team] = Object.keys(round.players[team]).map(function(userId){
+						return round.players[team][userId];
+					})
+					.map(function(playerInfo){
+						//XXX wordsIndexがzero originである前提
+						return playerInfo.input.wordsIndex + 1;
+					})//XXX とりあえず全員分を合算。人数差を考慮するならfilterやsortが必要
+					.reduce(function(prev,current){
+						return prev + current;
+					},0);
+				});
+			}
 		}
 	};
 
@@ -268,9 +307,7 @@
 			* @param {Object} message イベントメッセージ
 			*/
 			onInputFinish:function(message){
-				// 単語情報のため込み
-				// TODO:カッコイイ方法ないか。。。
-				//store.state.summary[store.state.gameInfo.roundId][json.payload.userInfo.team][json.payload.userInfo.userId] =  json.payload;
+				store.setPlayer(message.payload.input.roundId,message.payload);
 			}
 		};
 	}
@@ -348,8 +385,6 @@
 			var self = this;
 			this.currentTimerId = setInterval(
 				function(){
-
-
 					if(self.readySec > 0){
 						//準備中
 						self.readySec = self.readySec - 1;
