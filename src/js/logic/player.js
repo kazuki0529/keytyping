@@ -1,7 +1,7 @@
 /**
  * この画面固有の定数
  */
-	const DISP_TIME_COUNT_DOWN		= 1000		// ゲーム開始／終了カウントダウンの通知の表示時間
+	const DISP_TIME_COUNT_DOWN		= 1200		// ゲーム開始／終了カウントダウンの通知の表示時間
 	const DISP_TIME_START_FINISH	= 3000		// ゲーム開始／終了の通知の表示時間
 
 	const ROUND_STATUS = {
@@ -30,15 +30,15 @@
 			},
 			userInfo : {
 				team		: TEAM.INVALID,	// 選択したチーム
-				userId		: undefined,	// ユーザID（システムが発番）
+				userId		: false,		// ユーザID（システムが発番）
 				userName	: '',			// ユーザ名
 			},
-			roundInfo	: undefined,		// ゲームマスターから受け取ったゲーム情報
+			roundInfo	: false,			// ゲームマスターから受け取ったゲーム情報
 			input		: {
-				roundId		: undefined,	// ラウンドID
+				roundId		: false,		// ラウンドID
 				wordsIndex	: -1,			// 現在入力中である単語の配列番号
-				startTime	: undefined,	// 入力開始日時
-				finishTime	: undefined,	// 入力終了日時
+				startTime	: false,		// 入力開始日時
+				finishTime	: false			// 入力終了日時
 			},
 		},
 
@@ -54,16 +54,16 @@
 		},
 		/**
 		 * ゲーム情報通知
-		 * @param {Object} roundInfo 
+		 * @param {Object} roundInfo
 		 */
 		notifyRoundInfo( roundInfo )
 		{
-			this.state.roundInfo = Object.assign( {}, roundInfo );
+			this.state.roundInfo = roundInfo;
 		},
 		/**
 		 * ゲーム開始
-		 * 
-		 * @param {string} roundId 
+		 *
+		 * @param {string} roundId
 		 */
 		roundStart( roundId )
 		{
@@ -79,18 +79,19 @@
 		roundFinish()
 		{
 			this.state.screenInfo.roundStatus = ROUND_STATUS.FINISH;
+			this.state.roundInfo = Object.assign({}, this.state.roundInfo, { remainsSec: false } );
 		},
 		/**
 		 * 渡されたラウンドが有効かチェックする
-		 * @param {string} roundId 
+		 * @param {string} roundId
 		 */
 		validRound( roundId )
 		{
-			return (this.state.roundInfo.roundId === roundId);
+			return ( ( this.state.roundInfo ) && ( this.state.roundInfo.roundId === roundId ) );
 		},
 		/**
 		 * 入力した文字がタイプすべき文字と一致しているかを返す
-		 * @param {string} inputString 
+		 * @param {string} inputString
 		 */
 		isMatchTyping( inputString )
 		{
@@ -100,6 +101,18 @@
 				return  (inputString === this.state.roundInfo.words[store.state.input.wordsIndex].typing );
 			}
 			return false;
+		},
+		/**
+		 * ラウンドの残り時間を記録する
+		 * @param {int} remainsSec
+		 */
+		setRoundRemainsSec( remainsSec )
+		{
+			// こうしないと再描画されない
+			this.state.roundInfo = Object.assign(
+										{},
+										this.state.roundInfo,
+										{ remainsSec: remainsSec } );
 		},
 		/**
 		 * 選択したチームの情報を返す
@@ -222,13 +235,17 @@
 					}
 					break;
 				case GAME_FINISH_COUNT:	// ゲーム終了までのカウントダウン
-					if( store.validRound( json.payload.roundId ) )
+					if( store.validRound( json.payload.roundId  ) )
 					{
-						app.$message({
-							type		: 'warning',
-							message		: '終了' + json.payload.remainsSec + '秒前',
-							duration	: DISP_TIME_COUNT_DOWN
-						});
+						store.setRoundRemainsSec( json.payload.remainsSec );
+						if( json.payload.remainsSec <= 3 )
+						{
+							app.$message({
+								type		: 'warning',
+								message		: '終了' + json.payload.remainsSec + '秒前',
+								duration	: DISP_TIME_COUNT_DOWN
+							});
+						}
 					}
 					break;
 				case GAME_START:		// ゲーム開始
