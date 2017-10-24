@@ -425,8 +425,10 @@
 		* タイマー(強制)ストップ
 		*/
 		this.stop = function(){
-			this.stopTimer();
-			this.onEndCallback();
+			if(this.currentTimerId){
+				this.stopTimer();
+				this.onEndCallback();
+			}
 		}
 
 		/**
@@ -434,6 +436,7 @@
 		*/
 		this.stopTimer = function(){
 			clearInterval(this.currentTimerId);
+			this.currentTimerId = null;
 		}
 	}
 
