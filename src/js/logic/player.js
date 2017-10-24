@@ -307,7 +307,16 @@
 							message: JSON.stringify( sendData )
 						});
 
+						// 次の単語がない（すべて入力し終えた場合）は褒めてあげる
 						store.setNextWord();
+						if(!store.getNowWord())
+						{
+							this.$message({
+								type		: 'success',
+								message		: 'Congratulation!!',
+								duration	: 3000
+							});
+						}
 					}
 				}
 		},
@@ -319,12 +328,6 @@
 				{
 					return nowWord.view;
 				}
-
-				this.$message({
-					type		: 'success',
-					message		: 'Congratulation!!',
-					duration	: 3000
-				});
 				return '入力完了！';
 			},
 			dispTypingWord : function()
