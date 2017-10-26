@@ -485,7 +485,109 @@
 			el 		: "#app",
 			data	: store.state,
 			methods : {
-
+				remainsTimeOf:function(roundId){
+					var remainsSec = this.rounds[roundId].remainsSec;
+					return Math.floor(remainsSec / 60) + ":" + ("0" + (remainsSec % 60).toString()).substr(-2,2);
+				},
+				/**
+				* 指定されたroundで有効なteamを返す
+				* @param {string} roundId ラウンドID
+				* @return {Array} チームキーの配列
+				*/
+				getTeamsOf:function(roundId){
+					return Object.keys(this.rounds[roundId].score);
+				},
+				/**
+				* 指定されたround,teamのスコアを返す
+				* @param {string} roundId ラウンドID
+				* @param {string} team チームキー
+				* @return {int} 当該ラウンドの当該チームのスコア
+				*/
+				getScoreOf:function(roundId,team){
+					return this.rounds[roundId].score[team];
+				},
+				/**
+				* 指定されたround,teamの上位10名のID,名前,スコアを返す
+				* @param {string} roundId ラウンドID
+				* @param {string} team チームキー
+				* @return {{userId:string,userName:string,score:int,rank:int}} Top10のユーザー情報（スコアの降順）
+				*/
+				getTopPlayersOf(roundId,team){
+					var self = this;
+					return Object.keys(this.rounds[roundId].players[team]).map(function(userId){
+						return self.rounds[roundId].players[team][userId];
+					}).map(function(playerInfo){
+						return {
+							userId:playerInfo.userInfo.userId,
+							userName:playerInfo.userInfo.userName,
+							score:playerInfo.input.wordsIndex + 1,
+							finishTime:playerInfo.input.finishTime
+						};
+					}).sort(function(a,b){
+						var scoreDiff = b.score - a.score;
+						//スコアに差があればそれを採用
+						if(scoreDiff !== 0){
+							return scoreDiff
+						}else{
+							//スコアに差が無い場合は、finishTimeの昇順（≒早い順）
+							return Date.parse(a.finishTime) - Date.parse(b.finishTime);
+						}
+					}).slice(0,10)
+					.map(function(player,idx){
+						return Object.assign({},player,{rank:idx + 1});
+					})
+				},
+				/**
+				* 指定されたチームのロゴのパスを取得する
+				* @param {string} team チームキー
+				* @return {string} ロゴへの相対パス
+				*/
+				getTeamLogoPath:function(team){
+					switch(team){
+						case TEAM.SPRING:
+							return "img/spring.png";
+						case TEAM.SUMMER:
+							return "img/summer.png";
+						case TEAM.AUTUMN:
+							return "img/autumn.png";
+						case TEAM.WINTER:
+							return "img/winter.png";
+						default:
+							return "";
+					};
+				}
+			},
+			computed: {
+				/**
+				* ラウンド情報が存在するかどうか
+				* @return {boolean} １つでも存在すればTrue
+				*/
+				hasRound : function(){
+					return Object.keys(this.rounds).length > 0;
+				},
+				/**
+				* roundsを配列に変換したリストを返す
+				* {roundId:{roundId:"...",score:{...},...}} => [{roundId:"...",score:{...},...},{roundId:"...",score:{...},...}]
+				* @return {Array} 各ラウンドが格納された配列
+				*/
+				roundsArray : function(){
+					var self = this;
+					return Object.keys(this.rounds).map(function(key){return self.rounds[key]});
+				},
+				/**
+				* アクティブにすべきTabNameを返す
+				* @return {string} TabName
+				*/
+				activeTabName : function(){
+					//TabNameはroundIdに紐づいているので
+					//最後のroundIdを返す
+					var roundIds = Object.keys(this.rounds);
+					if(roundIds.length > 0){
+						return roundIds[roundIds.length - 1];
+					}else{
+						return "";
+					}
+				}
 			}
 		});
 
