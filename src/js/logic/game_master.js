@@ -485,7 +485,41 @@
 			el 		: "#app",
 			data	: store.state,
 			methods : {
-
+				/**
+				* 指定されたroundで有効なteamを返す
+				* @param {string} roundId ラウンドID
+				* @return {Array} チームキーの配列
+				*/
+				getTeamsOf:function(roundId){
+					return Object.keys(this.rounds[roundId].score);
+				},
+				/**
+				* 指定されたround,teamのスコアを返す
+				* @param {string} roundId ラウンドID
+				* @param {string} team チームキー
+				* @return {int} 当該ラウンドの当該チームのスコア
+				*/
+				getScoreOf:function(roundId,team){
+					return this.rounds[roundId].score[team];
+				}
+			},
+			computed: {
+				/**
+				* ラウンド情報が存在するかどうか
+				* @return {boolean} １つでも存在すればTrue
+				*/
+				hasRound : function(){
+					return Object.keys(this.rounds).length > 0;
+				},
+				/**
+				* roundsを配列に変換したリストを返す
+				* {roundId:{roundId:"...",score:{...},...}} => [{roundId:"...",score:{...},...},{roundId:"...",score:{...},...}]
+				* @return {Array} 各ラウンドが格納された配列
+				*/
+				roundsArray : function(){
+					var self = this;
+					return Object.keys(this.rounds).map(function(key){return self.rounds[key]});
+				}
 			}
 		});
 

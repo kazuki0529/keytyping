@@ -17,7 +17,7 @@
       </el-col>
     </el-row>
     <!-- 準備中画面 -->
-    <el-row v-if="Object.keys(rounds).length === 0">
+    <el-row v-if="! hasRound">
       <el-col :span="24">
         <div class="grid-content">
           <el-card class="box-card">
@@ -32,10 +32,10 @@
         </div>
       </el-col>
     </el-row>
-    <el-row v-if="Object.keys(rounds).length > 0">
+    <el-row v-if="hasRound">
       <el-col :span="24">
         <el-tabs>
-          <el-tab-pane v-for="roundId in Object.keys(rounds)" :key="roundId" :label="rounds[roundId].roundName">
+          <el-tab-pane v-for="round in roundsArray" :key="round.roundId" :label="round.roundName">
             <!-- ラウンド情報 -->
             <el-row>
               <el-col :span="24">
@@ -46,13 +46,13 @@
                   <div>
                     <dl>
                       <dt>ラウンド名</dt>
-                      <dd>{{ rounds[roundId].roundName }}</dd>
+                      <dd>{{ round.roundName }}</dd>
                       <dt>問題数</dt>
-                      <dd>{{ rounds[roundId].words.length }}問</dd>
+                      <dd>{{ round.words.length }}問</dd>
                       <dt>制限時間</dt>
-                      <dd>{{ rounds[roundId].remainsSec }} / {{ rounds[roundId].limitSec }}(秒)</dd>
+                      <dd>{{ round.remainsSec }} / {{ round.limitSec }}(秒)</dd>
                       <dt>状態</dt>
-                      <dd>{{ rounds[roundId].status }}</dd>
+                      <dd>{{ round.status }}</dd>
                     </dl>
                   </div>
                 </el-card>
@@ -60,13 +60,13 @@
             </el-row>
             <!-- 得点 -->
             <el-row>
-              <el-col :span="6" v-for="team in Object.keys(rounds[roundId].score)" :key="roundId + team">
+              <el-col :span="6" v-for="team in getTeamsOf(round.roundId)" :key="round.roundId + team">
                 <el-card class="box-card">
                   <div slot="header" class="clearfix">
                     <span style="line-height: 36px;">{{ team }}</span>
                   </div>
                   <div>
-                    {{ rounds[roundId].score[team] }}
+                    {{ getScoreOf(round.roundId,team) }}
                   </div>
                 </el-card>
               </el-col>
