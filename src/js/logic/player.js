@@ -4,14 +4,7 @@
 	const DISP_TIME_COUNT_DOWN		= 1200		// ゲーム開始／終了カウントダウンの通知の表示時間
 	const DISP_TIME_START_FINISH	= 3000		// ゲーム開始／終了の通知の表示時間
 
-	const ROUND_STATUS = {
-		READY	: "READY",						//準備中
-		RUNNING	: "RUNNING",					//実行中
-		FINISH	: "FINISH"						//完了
-	}
-
-
-/**
+	/**
  * 状態管理オブジェクトの定義
  * 画面はこの値を参照して描写を変える
  */

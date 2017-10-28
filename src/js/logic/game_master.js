@@ -4,13 +4,6 @@
 	//ラウンド開始前の準備時間(秒)
 	const READY_TIME_SEC = 3;
 
-	//ラウンドの状態
-	const ROUND_STATUS = {
-		READY:"READY", //準備中
-		RUNNING:"RUNNING",//実行中
-		FINISH:"FINISH"//完了
-	}
-
 /**
 * オブジェクト定義
 */
