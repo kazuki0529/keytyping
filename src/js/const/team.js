@@ -6,3 +6,11 @@ const TEAM = {
 		AUTUMN	: "AUTUMN",		// 秋チーム
 		WINTER	: "WINTER"		// 冬チーム
 }
+
+// チームのロゴ情報
+const TEAM_LOGO = [
+	{ key: TEAM.SPRING, image: './img/spring.png' },
+	{ key: TEAM.SUMMER, image: './img/summer.png' },
+	{ key: TEAM.AUTUMN, image: './img/autumn.png' },
+	{ key: TEAM.WINTER, image: './img/winter.png' }
+];

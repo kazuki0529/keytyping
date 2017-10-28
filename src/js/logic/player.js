@@ -20,12 +20,7 @@
 		state	: {
 			screenInfo : {
 				typing		: '',			// 入力した文字
-				teamList :[
-					{ image:'./img/spring.png', value : TEAM.SPRING },
-					{ image:'./img/summer.png', value : TEAM.SUMMER },
-					{ image:'./img/autumn.png', value : TEAM.AUTUMN },
-					{ image:'./img/winter.png', value : TEAM.WINTER }
-				],
+				teamList 	: TEAM_LOGO,
 				roundStatus	: ROUND_STATUS.READY
 			},
 			userInfo : {
@@ -120,7 +115,7 @@
 		getSelectedTeam()
 		{
 			const team = this.state.screenInfo.teamList.filter( function( team ){
-				return team.value === store.state.userInfo.team;
+				return team.key === store.state.userInfo.team;
 			});
 
 			if( team.length === 1 )

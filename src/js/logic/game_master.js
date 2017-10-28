@@ -542,19 +542,19 @@
 				* @param {string} team チームキー
 				* @return {string} ロゴへの相対パス
 				*/
-				getTeamLogoPath:function(team){
-					switch(team){
-						case TEAM.SPRING:
-							return "img/spring.png";
-						case TEAM.SUMMER:
-							return "img/summer.png";
-						case TEAM.AUTUMN:
-							return "img/autumn.png";
-						case TEAM.WINTER:
-							return "img/winter.png";
-						default:
-							return "";
-					};
+				getTeamLogoPath:function( key ){
+					const team = TEAM_LOGO.filter( function( team ){
+						return team.key === key;
+					});
+		
+					if( team.length === 1 )
+					{
+						return team[0].image;
+					}
+					else
+					{
+						return '';
+					}
 				}
 			},
 			computed: {
