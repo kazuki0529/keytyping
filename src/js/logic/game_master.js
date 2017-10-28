@@ -160,60 +160,60 @@
 	function Publisher(pubnub){
 		return {
 			/**
-			* GAME_INFOイベントのpublisher
-			* @param {Object} info game情報
+			* ROUND_INFOイベントのpublisher
+			* @param {Object} info round情報
 			*/
-			gameInfo:function(info){
+			roundInfo:function(info){
 				var sendInfo = {
-					type	: GAME_INFO,
+					type	: ROUND_INFO,
 					payload	: info
 				};
 
 				pubnub.publish({
-					channel: GAME_PROGRESS,
+					channel: ROUND_PROGRESS,
 					message: JSON.stringify( sendInfo )
 				});
 			},
 			/**
-			* GAME_STARTイベントのpublisher
+			* ROUND_STARTイベントのpublisher
 			* @param {String} roundId ラウンドのID
 			*/
-			gameStart:function(roundId){
+			roundStart:function(roundId){
 				const sendStart = {
-					type	: GAME_START,
+					type	: ROUND_START,
 					payload	: {
 						roundId	: roundId
 					}
 				};
 				pubnub.publish({
-					channel: GAME_PROGRESS,
+					channel: ROUND_PROGRESS,
 					message: JSON.stringify( sendStart )
 				});
 			},
 			/**
-			* GAME_FINISHイベントのpublisher
+			* ROUND_FINISHイベントのpublisher
 			* @param {String} roundId ラウンドのID
 			*/
-			gameFinish:function(roundId){
+			roundFinish:function(roundId){
 				const sendData = {
-					type	: GAME_FINISH,
+					type	: ROUND_FINISH,
 					payload	: {
 						roundId	: roundId
 					}
 				};
 				pubnub.publish({
-					channel: GAME_PROGRESS,
+					channel: ROUND_PROGRESS,
 					message: JSON.stringify( sendData )
 				});
 			},
 			/**
-			* GAME_START_COUNTイベントのpublisher
+			* ROUND_START_COUNTイベントのpublisher
 			* @param {string} roundId 対象のroundId
 			* @param {int} remainsSec 残り時間(秒)
 			*/
-			gameStartCount(roundId,remainsSec){
+			roundStartCount(roundId,remainsSec){
 				const sendData = {
-					type: GAME_START_COUNT,
+					type: ROUND_START_COUNT,
 					payload:{
 						roundId : roundId,
 						remainsSec : remainsSec
@@ -221,19 +221,19 @@
 				};
 
 				pubnub.publish({
-					channel: GAME_PROGRESS,
+					channel: ROUND_PROGRESS,
 					message: JSON.stringify( sendData )
 				});
 			},
 
 			/**
-			* GAME_FINISH_COUNTイベントのpublisher
+			* ROUND_FINISH_COUNTイベントのpublisher
 			* @param {string} roundId 対象のラウンドID
 			* @param {int} remainsSec 残り時間(秒)
 			*/
-			gameFinishCount(roundId,remainsSec){
+			roundFinishCount(roundId,remainsSec){
 				const sendData = {
-					type: GAME_FINISH_COUNT,
+					type: ROUND_FINISH_COUNT,
 					payload:{
 						roundId: roundId,
 						remainsSec: remainsSec
@@ -241,7 +241,7 @@
 				};
 
 				pubnub.publish({
-					channel: GAME_PROGRESS,
+					channel: ROUND_PROGRESS,
 					message: JSON.stringify( sendData )
 				});
 			},
@@ -258,15 +258,15 @@
 	function SubscribeEvents(store,publisher,idGenerator,roundTimeKeeperManager){
 		return {
 			/**
-			* GAME_STARTイベントのハンドラ
+			* ROUND_STARTイベントのハンドラ
 			* @param {Object} message イベントメッセージ
 			*/
 			onGameStart:function(message){
 				/**
-				 * ①ゲームの情報をpublish
+				 * ①ラウンドの情報をpublish
 				 * ②開始までのカウントダウンをpublish
-				 * ③ゲーム開始をpublish
-				 * ④試合時間を過ぎたらゲーム終了をpublish
+				 * ③ラウンド開始をpublish
+				 * ④試合時間を過ぎたらラウンド終了をpublish
 				 */
 				var roundInfo = message.payload;
 				var roundId = idGenerator();
@@ -277,29 +277,29 @@
 				roundTimeKeeper
 					.onReady(function(){
 						store.addRound(roundInfo);
-						publisher.gameInfo(roundInfo);
-						publisher.gameStartCount(roundId,READY_TIME_SEC);
+						publisher.roundInfo(roundInfo);
+						publisher.roundStartCount(roundId,READY_TIME_SEC);
 					})
-					.onTimeProceed(function(readySec,gameSec){
+					.onTimeProceed(function(readySec,roundSec){
 						if(readySec > 0){
-							publisher.gameStartCount(roundId,readySec);
-						}else if(gameSec > 0){
-							store.updateRemainsSec(roundId, gameSec);
-							publisher.gameFinishCount(roundId, gameSec);
+							publisher.roundStartCount(roundId,readySec);
+						}else if(roundSec > 0){
+							store.updateRemainsSec(roundId, roundSec);
+							publisher.roundFinishCount(roundId, roundSec);
 						}
 					})
 					.onStart(function(){
 						store.setRoundRunning(roundId);
-						publisher.gameStart(roundId);
+						publisher.roundStart(roundId);
 					})
 					.onEnd(function(){
 						store.setRoundFinish(roundId);
-						publisher.gameFinish(roundId);
+						publisher.roundFinish(roundId);
 					})
 					.start();
 			},
 			/**
-			* GAME_FINISHイベントのハンドラ
+			* ROUND_FINISHイベントのハンドラ
 			* @param {Object} message イベントメッセージ
 			*/
 			onGameFinish:function(message){
@@ -319,23 +319,23 @@
 		};
 	}
 	/**
-	* ゲーム時間のタイムキーパーオブジェクト
+	* ラウンド時間のタイムキーパーオブジェクト
 	* @param {int} readySec 準備時間(秒)
-	* @param {int} gameSec ゲーム実行時間(秒)
+	* @param {int} roundSec ラウンド実行時間(秒)
 	*/
-	function RoundTimeKeeper(readySec,gameSec){
+	function RoundTimeKeeper(readySec,roundSec){
 		//準備時間
 		this.readySec = readySec;
-		//ゲーム実行時間
-		this.gameSec = gameSec;
+		//ラウンド実行時間
+		this.roundSec = roundSec;
 		//タイマーのtick
 		this.deltaSec = 1;
 
 		//準備時間に入った時のcallback
 		this.onReadyCallback = function(){};
-		//ゲーム開始した際のcallback
+		//ラウンド開始した際のcallback
 		this.onStartCallback = function(){};
-		//ゲーム終了した際のcallback
+		//ラウンド終了した際のcallback
 		this.onEndCallback = function(){};
 		//時間が経過した際のcallback
 		this.onTimeProceedCallback = function(){};
@@ -354,7 +354,7 @@
 		}
 
 		/**
-		* ゲーム開始callbackの設定メソッド
+		* ラウンド開始callbackの設定メソッド
 		* @param {function} cb callback
 		* @return this(メソッドチェーン)
 		*/
@@ -364,7 +364,7 @@
 		}
 
 		/**
-		* ゲーム終了callbackの設定メソッド
+		* ラウンド終了callbackの設定メソッド
 		* @param {function} cb callback
 		* @return this(メソッドチェーン)
 		*/
@@ -395,15 +395,15 @@
 					if(self.readySec > 0){
 						//準備中
 						self.readySec = self.readySec - 1;
-						self.onTimeProceedCallback(self.readySec,self.gameSec);
+						self.onTimeProceedCallback(self.readySec,self.roundSec);
 						if(self.readySec === 0){
 							self.onStartCallback();
 						}
-					}else if(self.gameSec > 0){
+					}else if(self.roundSec > 0){
 						//実行中
-						self.gameSec = self.gameSec - 1;
-						self.onTimeProceedCallback(self.readySec,self.gameSec);
-						if(self.gameSec === 0){
+						self.roundSec = self.roundSec - 1;
+						self.onTimeProceedCallback(self.readySec,self.roundSec);
+						if(self.roundSec === 0){
 							self.onEndCallback();
 						}
 					}else{
@@ -436,7 +436,6 @@
 	/**
 	* RoundTimeKeeperのインスタンス管理オブジェクト
 	* @param {int} readySec 準備時間（秒）
-	* @param {int} gameSec ゲーム時間(秒)
 	*/
 	function RoundTimeKeeperManager(readySec){
 		//RoundTimeKeeperインスタンス
@@ -446,13 +445,13 @@
 		* 既存のインスタンスを破棄して新しいインスタンスを作成する
 		* @return {Object} RoundTimeKeeperインスタンス
 		*/
-		this.new = function(gameSec){
+		this.new = function(roundSec){
 			if(this.instance){
 				this.instance.stop();
 				this.instance = null;
 			}
 
-			this.instance = new RoundTimeKeeper(readySec,gameSec);
+			this.instance = new RoundTimeKeeper(readySec,roundSec);
 			return this.instance;
 		}
 
@@ -608,16 +607,16 @@
 		// PUBNUBからのメッセージをsubscribeし、受け取った際の動作を設定する
 		// Game Master操作用画面からpublishを受け取る
 		pubnub.subscribe({
-			channel: GAME_CONTROL,
+			channel: ROUND_CONTROL,
 			message: function( message ){
 				json = JSON.parse( message );
 				console.dir(json);
 				switch( json.type )
 				{
-					case GAME_START:		// ゲーム開始
+					case ROUND_START:		// ラウンド開始
 						subscribeEvents.onGameStart(json);
 						break;
-					case GAME_FINISH:		// ゲーム終了
+					case ROUND_FINISH:		// ラウンド終了
 						subscribeEvents.onGameFinish(json);
 						break;
 					default :

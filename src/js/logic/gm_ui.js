@@ -16,7 +16,7 @@ const store = {
 				{ view:'須田菜月',      typing:'すだなつき'            }
 			])
 		},
-		gameInfo	: {
+		roundInfo	: {
 			limitSec	: 60,
 			roundId		: '',
 			roundName	: '',
@@ -30,9 +30,9 @@ const store = {
 			console.dir(this.state);
 		}
 	},
-	gameStart( words )
+	roundStart( words )
 	{
-		this.state.gameInfo.words = words;
+		this.state.roundInfo.words = words;
 	}
 };
 
@@ -51,23 +51,23 @@ $(document).ready(function(){
 
 	// PUBNUBからのメッセージをsubscribeし、受け取った際の動作を設定する
 	pubnub.subscribe({
-		channel: GAME_PROGRESS,
+		channel: ROUND_PROGRESS,
 		message: function( message ){
 			json = JSON.parse( message );
 			console.log( json.type );
 			console.dir( json.payload );
 			switch( json.type )
 			{
-				case GAME_INFO:			// ゲーム情報
-					store.state.gameInfo = json.payload;
+				case ROUND_INFO:			// ラウンド情報
+					store.state.roundInfo = json.payload;
 					break;
-				case GAME_START_COUNT:	// ゲーム開始までのカウントダウン
+				case ROUND_START_COUNT:	// ラウンド開始までのカウントダウン
 					break;
-				case GAME_FINISH_COUNT:	// ゲーム終了までのカウントダウン
+				case ROUND_FINISH_COUNT:	// ラウンド終了までのカウントダウン
 					break;
-				case GAME_START:		// ゲーム開始
+				case ROUND_START:		// ラウンド開始
 					break;
-				case GAME_FINISH:		// ゲーム終了
+				case ROUND_FINISH:		// ラウンド終了
 					break;
 				default :
 					break;
@@ -85,38 +85,38 @@ const app = new Vue({
 	el 		: "#app",
 	data	: store.state,
 	methods : {
-		gameStart :
+		roundStart :
 			function() {
-				store.gameStart( JSON.parse( store.state.screenInfo.wordsString ) );
+				store.roundStart( JSON.parse( store.state.screenInfo.wordsString ) );
 				const sendData = {
-					type	: GAME_START,
-					payload	: store.state.gameInfo
+					type	: ROUND_START,
+					payload	: store.state.roundInfo
 				};
 				pubnub.publish({
-					channel: GAME_CONTROL,
+					channel: ROUND_CONTROL,
 					message: JSON.stringify( sendData )
 				});
 
 				this.$notify({
 					title	: 'Success',
-					message	: 'ゲーム開始メッセージを送信しました。',
+					message	: 'ラウンド開始メッセージを送信しました。',
 					type	: 'success'
 				});
 			},
-		gameFinish :
+		roundFinish :
 			function() {
 				const sendData = {
-					type	: GAME_FINISH,
+					type	: ROUND_FINISH,
 					payload	: {}
 				};
 				pubnub.publish({
-					channel: GAME_CONTROL,
+					channel: ROUND_CONTROL,
 					message: JSON.stringify( sendData )
 				});
 
 				this.$notify({
 					title	: 'Success',
-					message	: 'ゲーム終了メッセージを送信しました。',
+					message	: 'ラウンド終了メッセージを送信しました。',
 					type	: 'success'
 				});
 			}
