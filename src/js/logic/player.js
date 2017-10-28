@@ -4,89 +4,135 @@
 	const DISP_TIME_COUNT_DOWN		= 1200		// ラウンド開始／終了カウントダウンの通知の表示時間
 	const DISP_TIME_START_FINISH	= 3000		// ラウンド開始／終了の通知の表示時間
 
-	/**
+/**
  * 状態管理オブジェクトの定義
  * 画面はこの値を参照して描写を変える
  */
+	const txtBoxUserName	= $('#txtbox-user-name');
+	const txtBoxTyping 		= $('#txtbox-typing');
+	const lblWordView		= $('#lbl-word-view');
+	const lblWordTyping		= $('#lbl-word-typing');
+	const lblUserName 		= $('#lbl-user-name');
+	const lblAlert 			= $('#lbl-alert');
+
+	const pnlSelectTeam		= $('#pnl-select-team');
+	const pnlTyping 		= $('#pnl-typing');
+
+	const divBtnTeam 		= $('#btn-team');
+
+	const prgTyping 		= $('#prg-typing');
+
 	const store = {
-		debug	: false,
-		state	: {
-			screenInfo : {
-				typing		: '',			// 入力した文字
-				teamList 	: TEAM_LOGO,
-				roundStatus	: ROUND_STATUS.READY
+		debug: false,
+		state: {
+			screenInfo: {
+				typing: '',			// 入力した文字
+				teamList: TEAM_LOGO,
+				alert: {
+					type: 'alert alert-info',
+					text: 'ラウンド開始までしばらくお待ちください'
+				},
+				roundStatus: ROUND_STATUS.READY
 			},
-			userInfo : {
-				team		: TEAM.INVALID,	// 選択したチーム
-				userId		: false,		// ユーザID（システムが発番）
-				userName	: '',			// ユーザ名
+			userInfo: {
+				team: TEAM.INVALID,	// 選択したチーム
+				userId: false,		// ユーザID（システムが発番）
+				userName: '',			// ユーザ名
 			},
-			roundInfo	: false,			// ゲームマスターから受け取ったラウンド情報
-			input		: {
-				roundId		: false,		// ラウンドID
-				wordsIndex	: -1,			// 現在入力中である単語の配列番号
-				startTime	: false,		// 入力開始日時
-				finishTime	: false			// 入力終了日時
+			roundInfo: false,			// ゲームマスターから受け取ったラウンド情報
+			input: {
+				roundId: false,		// ラウンドID
+				wordsIndex: -1,			// 現在入力中である単語の配列番号
+				startTime: false,		// 入力開始日時
+				finishTime: false			// 入力終了日時
 			},
 		},
 
 		/**
+		 * ユーザ名入力
+		 * @param {string} userName 	入力したユーザ名
+		 */
+		inputUserName: function (userName) {
+			this.state.userInfo.userName = userName;
+
+			this.drawingView(this.state);
+		},
+		/**
 		 * チームボタン押下
 		 * @param {TEAM} team		選択したチーム
 		 */
-		selectTeam( team )
-		{
-			this.state.userInfo.team			= team;
-			this.state.userInfo.userId			= generateUUID();
-			this.state.screenInfo.roundStatus	= ROUND_STATUS.READY;
+		selectTeam: function (team) {
+			this.state.userInfo.team = team;
+			this.state.userInfo.userId = generateUUID();
+			this.state.screenInfo.roundStatus = ROUND_STATUS.READY;
+
+			this.drawingView(this.state);
 		},
 		/**
 		 * ラウンド情報通知
 		 * @param {Object} roundInfo
 		 */
-		notifyRoundInfo( roundInfo )
-		{
+		notifyRoundInfo: function (roundInfo) {
 			this.state.roundInfo = roundInfo;
+			this.state.screenInfo.roundStatus = ROUND_STATUS.READY;
+
+			this.drawingView(this.state);
+		},
+		/**
+		 * 通知エリアに表示する情報の設定
+		 * @param {string} type 
+		 * @param {string} text 
+		 */
+		setAlert: function (type, text) {
+			this.state.screenInfo.alert.type = type;
+			this.state.screenInfo.alert.text = text;
+
+			this.drawingView(this.state);
 		},
 		/**
 		 * ラウンド開始
 		 *
 		 * @param {string} roundId
 		 */
-		roundStart( roundId )
-		{
-			this.state.input.roundId			= roundId;
-			this.state.input.wordsIndex			= 0;
-			this.state.input.startTime			= new Date();
-			this.state.screenInfo.roundStatus	= ROUND_STATUS.RUNNING;
-			this.state.screenInfo.typing 		= '';
+		roundStart: function (roundId) {
+			this.state.input.roundId = roundId;
+			this.state.input.wordsIndex = 0;
+			this.state.input.startTime = new Date();
+			this.state.screenInfo.roundStatus = ROUND_STATUS.RUNNING;
+			this.state.screenInfo.typing = '';
+
+			this.drawingView(this.state);
 		},
 		/**
 		 * ラウンド終了
 		 */
-		roundFinish()
-		{
+		roundFinish: function () {
+			// こうしないと再描画されない
+			// IEだとObject.assignが使えないので。。。
 			this.state.screenInfo.roundStatus = ROUND_STATUS.FINISH;
-			this.state.roundInfo = Object.assign({}, this.state.roundInfo, { remainsSec: false } );
+			var roundInfo = this.state.roundInfo;
+			roundInfo.remainsSec = false;
+			this.state.roundInfo = roundInfo;
+
+			this.drawingView(this.state);
 		},
 		/**
 		 * 渡されたラウンドが有効かチェックする
 		 * @param {string} roundId
 		 */
-		validRound( roundId )
-		{
-			return ( ( this.state.roundInfo ) && ( this.state.roundInfo.roundId === roundId ) );
+		validRound: function (roundId) {
+			this.drawingView(this.state);
+
+			return ((this.state.roundInfo) && (this.state.roundInfo.roundId === roundId));
 		},
 		/**
 		 * 入力した文字がタイプすべき文字と一致しているかを返す
 		 * @param {string} inputString
 		 */
-		isMatchTyping( inputString )
-		{
+		isMatchTyping: function (inputString) {
 			// 配列の範囲内かチェック
-			if( this.state.roundInfo.words.length > this.state.input.wordsIndex )
-			{
-				return  (inputString === this.state.roundInfo.words[store.state.input.wordsIndex].typing );
+			if (this.state.roundInfo.words.length > this.state.input.wordsIndex) {
+				return (inputString === this.state.roundInfo.words[store.state.input.wordsIndex].typing);
 			}
 			return false;
 		},
@@ -94,40 +140,36 @@
 		 * ラウンドの残り時間を記録する
 		 * @param {int} remainsSec
 		 */
-		setRoundRemainsSec( remainsSec )
-		{
+		setRoundRemainsSec: function (remainsSec) {
 			// こうしないと再描画されない
-			this.state.roundInfo = Object.assign(
-										{},
-										this.state.roundInfo,
-										{ remainsSec: remainsSec } );
+			// IEだとObject.assignが使えないので。。。
+			var roundInfo = this.state.roundInfo;
+			roundInfo.remainsSec = remainsSec;
+			this.state.roundInfo = roundInfo;
+
+			this.drawingView(this.state);
 		},
 		/**
 		 * 選択したチームの情報を返す
 		 */
-		getSelectedTeam()
-		{
-			const team = this.state.screenInfo.teamList.filter( function( team ){
+		getSelectedTeam: function () {
+			const team = this.state.screenInfo.teamList.filter(function (team) {
 				return team.key === store.state.userInfo.team;
 			});
 
-			if( team.length === 1 )
-			{
+			if (team.length === 1) {
 				return team[0];
 			}
-			else
-			{
+			else {
 				return false;
 			}
 		},
 		/**
 		 * 今入力すべき課題の情報を返す
 		 */
-		getNowWord()
-		{
-			if(	( this.state.input.wordsIndex >= 0									)
-			&&	( this.state.roundInfo.words.length > store.state.input.wordsIndex	) )
-			{
+		getNowWord: function () {
+			if ((this.state.input.wordsIndex >= 0)
+				&& (this.state.roundInfo.words.length > store.state.input.wordsIndex)) {
 				return store.state.roundInfo.words[store.state.input.wordsIndex];
 			}
 			return false;
@@ -135,58 +177,117 @@
 		/**
 		 * 準備中か判断
 		 */
-		isRoundReady()
-		{
-			return( this.state.screenInfo.roundStatus === ROUND_STATUS.READY );
+		isRoundReady: function () {
+			return (this.state.screenInfo.roundStatus === ROUND_STATUS.READY);
 		},
 		/**
 		 * ラウンドが進行中か判断
 		 */
-		isRoundRunning()
-		{
-			return( this.state.screenInfo.roundStatus === ROUND_STATUS.RUNNING );
+		isRoundRunning: function () {
+			return (this.state.screenInfo.roundStatus === ROUND_STATUS.RUNNING);
 		},
 		/**
 		 * 入力の進捗状況を返す
 		 */
-		calcTypingProgress()
-		{
-			if(	( this.state.input.wordsIndex >= 1		)
-			&&	( this.state.roundInfo.words.length > 0 ) )
-			{
-				return ( (this.state.input.wordsIndex * 100 ) / this.state.roundInfo.words.length );
+		calcTypingProgress: function () {
+			if ((this.state.input.wordsIndex >= 1)
+				&& (this.state.roundInfo.words.length > 0)) {
+				return (Math.round((this.state.input.wordsIndex * 100) / this.state.roundInfo.words.length));
 			}
 			return 0;
 		},
 		/**
 		 * 入力完了
 		 */
-		inputFinish()
-		{
+		inputFinish: function () {
 			this.state.input.finishTime = new Date();
 		},
 		/**
 		 * 次の入力課題を設定
 		 */
-		setNextWord()
-		{
+		setNextWord: function () {
 			this.state.input.wordsIndex++;
 			this.state.input.startTime = new Date();
 			this.state.screenInfo.typing = '';
+
+			this.drawingView(this.state);
 		},
 		/**
 		 * 入力情報のgetter
 		 */
-		getInput()
-		{
+		getInput: function () {
 			return this.state.input;
 		},
 		/**
 		 * ユーザ情報のgetter
 		 */
-		getUserInfo()
-		{
+		getUserInfo: function () {
 			return this.state.userInfo;
+		},
+
+		/**
+		 * 描画処理
+		 */
+		drawingView: function () {
+			// チーム選択してからタイピング画面を表示
+			if (this.state.userInfo.team === TEAM.INVALID) {
+				pnlSelectTeam.removeClass('hidden');
+				pnlTyping.addClass('hidden');
+				lblUserName.addClass('hidden');
+			}
+			else {
+				pnlSelectTeam.addClass('hidden');
+				pnlTyping.removeClass('hidden');
+				lblUserName.removeClass('hidden');
+			}
+	
+			/**
+			 * チーム選択画面の描画
+			 */
+			// 名前を入力したらチーム選択ボタンを表示
+			if (this.state.userInfo.userName === '') {
+				divBtnTeam.empty();
+			}
+			else if (divBtnTeam.children().length === 0) {
+				this.state.screenInfo.teamList.map(function (value) {
+					divBtnTeam.append(
+						$('<a/>').attr({
+							onclick: 'selectTeam( \'' + value.key + '\' )'
+						}).append($('<img/>').attr(
+							{ src: value.image })));
+				});
+			}
+	
+			/**
+			 * タイピング画面の描画
+			 */
+			// ユーザ名と選択したチームのロゴを表示する
+			lblUserName.text(this.state.userInfo.userName + 'さん');
+	
+			// 単語情報を表示
+			const nowWord = store.getNowWord();
+			console.log(this.state.screenInfo.roundStatus);
+			txtBoxTyping.prop('disabled', !(nowWord && this.state.screenInfo.roundStatus === ROUND_STATUS.RUNNING));
+			if (nowWord) {
+				lblWordView.text(nowWord.view);
+				lblWordTyping.text(nowWord.typing);
+				txtBoxTyping.attr('placeholder', nowWord.typing);
+	
+				// iOS用のfocusセット（出来てない。。。）
+				// http://alpha.mixi.co.jp/entry/2012/10807/
+				txtBoxTyping.focus();
+				txtBoxTyping.on('click', function () {
+					txtBoxTyping.focus();
+				});
+			}
+	
+			// 進捗状況の変更
+			prgTyping.width(store.calcTypingProgress() + "%");
+			//prgTyping.text(store.calcTypingProgress() + "%");
+	
+			// 通知領域の制御
+			lblAlert.attr({ class: this.state.screenInfo.alert.type });
+			lblAlert.text(this.state.screenInfo.alert.text);
 		}
 	};
 
@@ -216,44 +317,31 @@
 				case ROUND_START_COUNT:	// ラウンド開始までのカウントダウン
 					if( store.validRound( json.payload.roundId ) )
 					{
-						app.$message({
-							message		: '開始' + json.payload.remainsSec + '秒前',
-							duration	: DISP_TIME_COUNT_DOWN
-						});
+						store.setAlert( 'alert alert-warning', 'ラウンド開始' + json.payload.remainsSec + '秒前' )
 					}
 					break;
 				case ROUND_FINISH_COUNT:	// ラウンド終了までのカウントダウン
-					if( store.validRound( json.payload.roundId  ) )
-					{
-						store.setRoundRemainsSec( json.payload.remainsSec );
-						if( json.payload.remainsSec <= 3 )
-						{
-							app.$message({
-								type		: 'warning',
-								message		: '終了' + json.payload.remainsSec + '秒前',
-								duration	: DISP_TIME_COUNT_DOWN
-							});
+					if (store.validRound(json.payload.roundId)) {
+						store.setRoundRemainsSec(json.payload.remainsSec);
+						if (json.payload.remainsSec > 3) {
+							store.setAlert('alert alert-info', '残り' + json.payload.remainsSec + '秒')
+						} else {
+							store.setAlert('alert alert-warning', '残り' + json.payload.remainsSec + '秒')
 						}
 					}
 					break;
 				case ROUND_START:		// ラウンド開始
 					if( store.validRound( json.payload.roundId ) )
 					{
+						store.setAlert( 'alert alert-info', 'ラウンドスタート！！' )
 						store.roundStart( json.payload.roundId );
-						app.$message({
-							message		: 'ラウンドスタート',
-							duration	: DISP_TIME_COUNT_DOWN
-						});
 					}
 					break;
 				case ROUND_FINISH:		// ラウンド終了
 					if( store.validRound( json.payload.roundId ) )
 					{
-						store.roundFinish( json.payload.roundId );
-						app.$message({
-							message		: 'ラウンド終了',
-							duration	: DISP_TIME_START_FINISH
-						});
+						store.setAlert( 'alert alert-success', 'ラウンド終了。次のラウンドまでお待ちください。' )
+						store.roundFinish(json.payload.roundId);
 					}
 					break;
 				default :
@@ -262,94 +350,42 @@
 		}
 	});
 
-
 	/**
-	* メインのVueコンポーネント
-	*/
-	const app = new Vue({
-		el 		: "#app",
-		data	: store.state,
-		methods : {
-			selectTeam :		// チーム選択
-				function( team ){
-					store.selectTeam( team );
-				},
-			typing :			// タイピング中
-				function( value )
-				{
-					// タイピング課題と入力した文字が一致したらpublishする
-					// その後、次の単語データがあれば画面に単語データをセット
-					if( store.isMatchTyping( value ) )
-					{
-						store.inputFinish();
+	 * 画面のイベント登録
+	 */	
+	// ユーザ名入力のkeyupイベント登録
+	txtBoxUserName.keyup(function (e) {
+		store.inputUserName(e.target.value);
+	});
+	// チーム選択イベント
+	function selectTeam(team) {
+		store.selectTeam(team);
+	}
+	// タイピングのkeypressイベント登録
+	txtBoxTyping.keypress(function () {
+		const inputString = txtBoxTyping.val();
+		if (store.isMatchTyping(inputString)) {
+			store.inputFinish();
 
-						const sendData = {
-							type	: INPUT_FINISH,
-							payload	: {
-								userInfo	: store.getUserInfo(),
-								input		: store.getInput()
-							}
-						};
-						pubnub.publish({
-							channel: ANSWER,
-							message: JSON.stringify( sendData )
-						});
+			// 入力完了情報をpublish
+			const sendData = {
+				type: INPUT_FINISH,
+				payload: {
+					userInfo: store.getUserInfo(),
+					input: store.getInput()
+				}
+			};
+			pubnub.publish({
+				channel: ANSWER,
+				message: JSON.stringify(sendData)
+			});
 
-						// 次の単語がない（すべて入力し終えた場合）は褒めてあげる
-						store.setNextWord();
-						if(!store.getNowWord())
-						{
-							this.$message({
-								type		: 'success',
-								message		: 'Congratulation!!',
-								duration	: 3000
-							});
-						}
-					}
-				}
-		},
-		computed	:{
-			dispViewWord : function()
-			{
-				const nowWord = store.getNowWord();
-				if( nowWord )
-				{
-					return nowWord.view;
-				}
-				return '入力完了！';
-			},
-			dispTypingWord : function()
-			{
-				const nowWord = store.getNowWord();
-				if( nowWord )
-				{
-					return nowWord.typing;
-				}
-				return '';
-			},
-			calcTypingProgress : function()
-			{
-				return store.calcTypingProgress();
-			},
-			getTeamImage : function()
-			{
-				const team = store.getSelectedTeam();
-				if( team )
-				{
-					return team.image;
-				}
-				else
-				{
-					return undefined;
-				}
-			},
-			isRoundReady : function()
-			{
-				return( store.isRoundReady() );
-			},
-			isRoundRunning : function()
-			{
-				return( store.isRoundRunning() );
-			}
+			// 次の単語データセット
+			store.setNextWord();
+			txtBoxTyping.focus();
+			txtBoxTyping.val('');
 		}
 	});
+
+	// 描画処理
+	store.drawingView(store.state);

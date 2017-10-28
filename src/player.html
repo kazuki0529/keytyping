@@ -1,102 +1,64 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-  <title>ＮＳＴ５周年記念 スマホ早打ち王決定戦</title>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-default/index.css">
-  <style>
-    .page-header {
-      padding-bottom: 9px;
-      margin: 40px 0 20px;
-      border-bottom: 1px solid #eee;
-    }
-    .h1, h1 {
-      font-size: 36px;
-    }
-    .h1, .h2, .h3, h1, h2, h3 {
-      margin-top: 20px;
-      margin-bottom: 10px;
-    }
-    .h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
-      font-family: inherit;
-      font-weight: 500;
-      line-height: 1.1;
-      color: inherit;
-    }
-    .typing-word {
-      font-size: 12px;
-      color: #777;
-    }
-    .view-word {
-      font-size: 18px;
-    }
-  </style>
-</head>
-<body>
-  <div id="app">
-    <div class="page-header"><h1>スマホ早打ち王決定戦</h1></div>
-    <!-- チーム選択画面 -->
-    <template v-if="userInfo.team ==='INVALID'">
-      <p><el-input :value="userInfo.userName" v-model="userInfo.userName" placeholder="社員番号 or お名前の入力"></el-input></p>
-        <el-row>
-          <transition
-            v-for="( team, index ) in screenInfo.teamList"
-            :key="index"
-            name="el-zoom-in-center">
-            <el-button type="text" v-show="userInfo.userName !== ''" size="large" v-on:click="selectTeam( team.value )">
-              <img :src="team.image" class="image">
-            </el-button>
-          </transition>
-        </el-row>
-    </template>
+  <head>
+    <title>ＮＳＴ５周年記念 スマホ早打ち王決定戦</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="./css/bootstrap_custom.css">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" rel="stylesheet">
+  </head>
+  <body>
+    <!-- ヘッダ部 -->
+    <nav class="navbar navbar-inverse">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">
+            スマホ早打ち王決定戦
+          </a>
+        </div>
+      </div>
+    </nav>
+  
+    <!-- 入力画面メイン部分-->
+    <div class="panel panel-default">
+      <div id="pnl-header" class="panel-heading">
+        <div id="lbl-user-name"></div>
+        <div id="lbl-count-down"></div>
+      </div>
 
-    <!-- タイピング画面 -->
-    <template v-else>
-      <el-row>
-        <el-col :span="12">
-          {{userInfo.userName}}さん
-        </el-col>
-        <el-col :span="12">
-          <template v-if="roundInfo.remainsSec">
-            残り {{roundInfo.remainsSec}}秒
-          </template>
-        </el-col>
-      </el-row>
+      <!-- 名前とチーム選択部分定義 -->
+      <div id="pnl-select-team" class="panel-body">
+        <input id="txtbox-user-name" type="text" class="form-control" placeholder="社員番号か名前をいれてください">
+        <div id="btn-team">
+        </div>
+      </div>
 
-      <template v-if="isRoundReady">
-        <p icon='el-icon-loading'>ラウンド開始までしばらくお待ちください。</p>
-      </template>
-      <template v-else>
-        <el-progress :percentage="calcTypingProgress" status="success"></el-progress>
-        <el-row>
-          <div class="typing-word">{{dispTypingWord}}</div>
-        </el-row>
-        <el-row>
-          <div class="view-word">{{dispViewWord}}</div>
-        </el-row>
-      </template>
-      <p>
-        <el-input
-          v-on:change ="typing"
-          :value      ="screenInfo.typing"
-          v-model     ="screenInfo.typing"
-          :placeholder="dispTypingWord"
-          v-loading   ="!isRoundRunning"
-          element-loading-text="準備中..."
-          :disabled   ="!isRoundRunning">
-        </el-input>
-      </p>
-    </template>
-  </div>
-</body>
-  <!-- Vue.js -->
-  <script src="https://unpkg.com/vue/dist/vue.js"></script>
-  <!-- element-ui -->
-  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+      <!-- タイピング部分の定義 -->
+      <div id="pnl-typing" class="panel-body hidden">
+        <div id="lbl-alert" class="alert alert-info" role="alert" style="padding:8px; margin-bottom:8px;"></div>
+        <div id="lbl-word-view"></div>
+        <div id="lbl-word-typing" class="text-typing"></div>
+        <div class="progress" style="height:4px; margin-bottom:2px;">
+          <div id="prg-typing" class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" style="width: 0%;"></div>
+        </div>
+        <input id="txtbox-typing" type="text" class="form-control" placeholder="" value="" disabled autofocus>
+      </div>
+      <div class="panel-footer">
+      </div>
+    </div>
+
+
+  </body>
   <!-- PUBNUB -->
   <script src="https://cdn.pubnub.com/pubnub.min.js"></script>
-  <!-- app script-->
+  <!-- Jquerry -->
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+  <!--
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  -->
+  <!-- Bootstrap -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+    <!-- app script-->
   <script src="./js/const/pubnub.js"></script>
   <script src="./js/const/channel.js"></script>
   <script src="./js/const/action.js"></script>
