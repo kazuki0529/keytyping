@@ -1,8 +1,8 @@
 /**
  * この画面固有の定数
  */
-	const DISP_TIME_COUNT_DOWN		= 1200		// ゲーム開始／終了カウントダウンの通知の表示時間
-	const DISP_TIME_START_FINISH	= 3000		// ゲーム開始／終了の通知の表示時間
+	const DISP_TIME_COUNT_DOWN		= 1200		// ラウンド開始／終了カウントダウンの通知の表示時間
+	const DISP_TIME_START_FINISH	= 3000		// ラウンド開始／終了の通知の表示時間
 
 	/**
  * 状態管理オブジェクトの定義
@@ -21,7 +21,7 @@
 				userId		: false,		// ユーザID（システムが発番）
 				userName	: '',			// ユーザ名
 			},
-			roundInfo	: false,			// ゲームマスターから受け取ったゲーム情報
+			roundInfo	: false,			// ゲームマスターから受け取ったラウンド情報
 			input		: {
 				roundId		: false,		// ラウンドID
 				wordsIndex	: -1,			// 現在入力中である単語の配列番号
@@ -41,7 +41,7 @@
 			this.state.screenInfo.roundStatus	= ROUND_STATUS.READY;
 		},
 		/**
-		 * ゲーム情報通知
+		 * ラウンド情報通知
 		 * @param {Object} roundInfo
 		 */
 		notifyRoundInfo( roundInfo )
@@ -49,7 +49,7 @@
 			this.state.roundInfo = roundInfo;
 		},
 		/**
-		 * ゲーム開始
+		 * ラウンド開始
 		 *
 		 * @param {string} roundId
 		 */
@@ -62,7 +62,7 @@
 			this.state.screenInfo.typing 		= '';
 		},
 		/**
-		 * ゲーム終了
+		 * ラウンド終了
 		 */
 		roundFinish()
 		{
@@ -203,17 +203,17 @@
 
 	// PUBNUBからのメッセージをsubscribeし、受け取った際の動作を設定する
 	pubnub.subscribe({
-		channel: GAME_PROGRESS,
+		channel: ROUND_PROGRESS,
 		message: function( message ){
 			json = JSON.parse( message );
 			console.log(json.type);
 			console.dir(json.payload);
 			switch( json.type )
 			{
-				case GAME_INFO:			// ゲーム情報
+				case ROUND_INFO:			// ラウンド情報
 					store.notifyRoundInfo( json.payload );
 					break;
-				case GAME_START_COUNT:	// ゲーム開始までのカウントダウン
+				case ROUND_START_COUNT:	// ラウンド開始までのカウントダウン
 					if( store.validRound( json.payload.roundId ) )
 					{
 						app.$message({
@@ -222,7 +222,7 @@
 						});
 					}
 					break;
-				case GAME_FINISH_COUNT:	// ゲーム終了までのカウントダウン
+				case ROUND_FINISH_COUNT:	// ラウンド終了までのカウントダウン
 					if( store.validRound( json.payload.roundId  ) )
 					{
 						store.setRoundRemainsSec( json.payload.remainsSec );
@@ -236,22 +236,22 @@
 						}
 					}
 					break;
-				case GAME_START:		// ゲーム開始
+				case ROUND_START:		// ラウンド開始
 					if( store.validRound( json.payload.roundId ) )
 					{
 						store.roundStart( json.payload.roundId );
 						app.$message({
-							message		: 'ゲームスタート',
+							message		: 'ラウンドスタート',
 							duration	: DISP_TIME_COUNT_DOWN
 						});
 					}
 					break;
-				case GAME_FINISH:		// ゲーム終了
+				case ROUND_FINISH:		// ラウンド終了
 					if( store.validRound( json.payload.roundId ) )
 					{
 						store.roundFinish( json.payload.roundId );
 						app.$message({
-							message		: 'ゲーム終了',
+							message		: 'ラウンド終了',
 							duration	: DISP_TIME_START_FINISH
 						});
 					}

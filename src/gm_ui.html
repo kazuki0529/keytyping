@@ -11,16 +11,16 @@
     <template>
       <p>
         <el-input-number
-          v-model="gameInfo.limitSec"
-          :value="gameInfo.limitSec"
+          v-model="roundInfo.limitSec"
+          :value="roundInfo.limitSec"
           :min="20"
           :max="600">
         </el-input-number>
       </p>
       <p>
         <el-input
-          v-model="gameInfo.roundName"
-          :value="gameInfo.roundName"
+          v-model="roundInfo.roundName"
+          :value="roundInfo.roundName"
           placeholder="ラウンド名">
         </el-input>
       </p>
@@ -37,13 +37,13 @@
       <el-button
         type="primary"
         size="large"
-        v-on:click="gameStart"
+        v-on:click="roundStart"
         :disabled="screenInfo.inputWords === ''">スタート</el-button>
       <el-button
         type="danger"
         size="large"
-        v-on:click="gameFinish"
-        :disabled="gameInfo.roundId === ''">終了</el-button>
+        v-on:click="roundFinish"
+        :disabled="roundInfo.roundId === ''">終了</el-button>
       </p>
     </template>
   </div>        
