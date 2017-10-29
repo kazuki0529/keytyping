@@ -10,7 +10,7 @@
   <div id="app">
     <!-- ヘッダ -->
     <el-row>
-      <el-col :span="24">
+      <el-col :span="22">
         <div class="grid-content">
           <h1>ＮＳＴ５周年記念 スマホ早打ち王決定戦</h1>
         </div>
@@ -108,6 +108,16 @@
         </el-tabs>
       </el-col>
     </el-row>
+    <el-row>
+      <el-col :span="24">
+        <div class="grid-content">
+          <p>
+            <a :href="getControllerUrl" target="_blank"><el-button type="primary" icon="setting"></el-button></a>
+          </p>
+        </div>
+      </el-col>
+    </el-row>
+
     <!-- debug -->
     <!--el-row>
       <pre>

@@ -5,7 +5,8 @@
 const store = {
 	debug	: true,
 	state 	: {
-		screenInfo	: {
+		screenInfo: {
+			roundCtlChannel: location.search.substring(1),
 			wordsString : JSON.stringify([
 				{ view:'塚本晃司',      typing:'つかもとこうじ'        },
 				{ view:'牧島研之介',    typing:'まきしまけんのすけ'    },
@@ -33,6 +34,13 @@ const store = {
 	roundStart( words )
 	{
 		this.state.roundInfo.words = words;
+	},
+
+	/**
+	 * ラウンド操作用のチャンネル情報を返す
+	 */
+	getRoundCtlChannel() {
+		return this.state.screenInfo.roundCtlChannel;
 	}
 };
 
@@ -61,13 +69,13 @@ $(document).ready(function(){
 				case ROUND_INFO:			// ラウンド情報
 					store.state.roundInfo = json.payload;
 					break;
-				case ROUND_START_COUNT:	// ラウンド開始までのカウントダウン
+				case ROUND_START_COUNT:		// ラウンド開始までのカウントダウン
 					break;
 				case ROUND_FINISH_COUNT:	// ラウンド終了までのカウントダウン
 					break;
-				case ROUND_START:		// ラウンド開始
+				case ROUND_START:			// ラウンド開始
 					break;
-				case ROUND_FINISH:		// ラウンド終了
+				case ROUND_FINISH:			// ラウンド終了
 					break;
 				default :
 					break;
@@ -93,7 +101,7 @@ const app = new Vue({
 					payload	: store.state.roundInfo
 				};
 				pubnub.publish({
-					channel: ROUND_CONTROL,
+					channel: store.getRoundCtlChannel(),
 					message: JSON.stringify( sendData )
 				});
 
