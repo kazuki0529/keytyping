@@ -14,8 +14,10 @@
 	 */
 	const store = {
 		debug	: false,
-		state 	: {
-			rounds:{}
+		state: {
+			roundCtlChannel: generateUUID(),
+			rounds: {}
+			
 		},
 		/**
 		* rounds stateを更新する（これをやらないとroundsの変更がvueに反映されない）
@@ -149,6 +151,13 @@
 				});
 				this.refreshRounds();
 			}
+		},
+
+		/**
+		 * ラウンド操作用のチャンネル情報を返す
+		 */
+		getRoundCtlChannel() {
+			return this.state.roundCtlChannel;
 		}
 	};
 
@@ -579,6 +588,12 @@
 					}else{
 						return "";
 					}
+				},
+				/**
+				 * Controllerへのリンクを生成
+				 */
+				getControllerUrl : function () {
+					return './gm_ui.html?' + store.getRoundCtlChannel();
 				}
 			}
 		});
@@ -607,7 +622,7 @@
 		// PUBNUBからのメッセージをsubscribeし、受け取った際の動作を設定する
 		// Game Master操作用画面からpublishを受け取る
 		pubnub.subscribe({
-			channel: ROUND_CONTROL,
+			channel: store.getRoundCtlChannel(),
 			message: function( message ){
 				json = JSON.parse( message );
 				console.dir(json);
