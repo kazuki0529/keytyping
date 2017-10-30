@@ -118,7 +118,7 @@ const app = new Vue({
 					payload	: {}
 				};
 				pubnub.publish({
-					channel: ROUND_CONTROL,
+					channel: store.getRoundCtlChannel(),
 					message: JSON.stringify( sendData )
 				});
 

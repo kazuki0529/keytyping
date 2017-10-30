@@ -8,26 +8,27 @@
  * 状態管理オブジェクトの定義
  * 画面はこの値を参照して描写を変える
  */
-	const txtBoxUserName	= $('#txtbox-user-name');
-	const txtBoxTyping 		= $('#txtbox-typing');
-	const lblWordView		= $('#lbl-word-view');
-	const lblWordTyping		= $('#lbl-word-typing');
-	const lblUserName 		= $('#lbl-user-name');
-	const lblAlert 			= $('#lbl-alert');
+	const txtBoxUserName		= $('#txtbox-user-name');
+	const txtBoxTyping 			= $('#txtbox-typing');
+	const lblWordView			= $('#lbl-word-view');
+	const lblWordTypingMatch	= $('#lbl-word-typing-match');
+	const lblWordTyping			= $('#lbl-word-typing');
+	const lblUserName 			= $('#lbl-user-name');
+	const lblAlert 				= $('#lbl-alert');
 
-	const pnlSelectTeam		= $('#pnl-select-team');
-	const pnlTyping 		= $('#pnl-typing');
+	const pnlSelectTeam			= $('#pnl-select-team');
+	const pnlTyping 			= $('#pnl-typing');
 
-	const divBtnTeam 		= $('#btn-team');
+	const divBtnTeam 			= $('#btn-team');
 
-	const prgTyping 		= $('#prg-typing');
+	const prgTyping 			= $('#prg-typing');
 
 	const store = {
 		debug: false,
 		state: {
 			screenInfo: {
-				typing: '',			// 入力した文字
-				teamList: TEAM_LOGO,
+				matchString	: '',			// 入力が一致してる文字
+				teamList	: TEAM_LOGO,
 				alert: {
 					type: 'alert alert-info',
 					text: 'ラウンド開始までしばらくお待ちください'
@@ -57,6 +58,15 @@
 
 			this.drawingView(this.state);
 		},
+		/**
+		 * 一致した文字列の設定
+		 * @param {string} matchString 	一致した文字列
+		 */
+		setMatchString: function (matchString) {
+			this.state.screenInfo.matchString = matchString
+
+			this.drawingView(this.state);
+		},	
 		/**
 		 * チームボタン押下
 		 * @param {TEAM} team		選択したチーム
@@ -266,11 +276,11 @@
 	
 			// 単語情報を表示
 			const nowWord = store.getNowWord();
-			console.log(this.state.screenInfo.roundStatus);
 			txtBoxTyping.prop('disabled', !(nowWord && this.state.screenInfo.roundStatus === ROUND_STATUS.RUNNING));
 			if (nowWord) {
 				lblWordView.text(nowWord.view);
-				lblWordTyping.text(nowWord.typing);
+				lblWordTypingMatch.text(this.state.screenInfo.matchString);
+				lblWordTyping.text(nowWord.typing.substring(this.state.screenInfo.matchString.length));
 				txtBoxTyping.attr('placeholder', nowWord.typing);
 	
 				// iOS用のfocusセット（出来てない。。。）
@@ -384,6 +394,20 @@
 			store.setNextWord();
 			txtBoxTyping.focus();
 			txtBoxTyping.val('');
+		}
+	});
+	// タイピング成功している箇所については薄いグレーにする
+	txtBoxTyping.keyup(function (e) {
+		const inputString = e.target.value;
+
+		// 前方一致した場合
+		const nowWord = store.getNowWord();
+		if (!nowWord) {
+			store.setMatchString('');
+		}
+		if ((nowWord)
+		&&	(nowWord.typing.indexOf(inputString) === 0)) {
+			store.setMatchString(inputString);
 		}
 	});
 
