@@ -218,7 +218,7 @@
 		setNextWord: function () {
 			this.state.input.wordsIndex++;
 			this.state.input.startTime = new Date();
-			this.state.screenInfo.typing = '';
+			this.state.screenInfo.matchString = '';
 
 			this.drawingView(this.state);
 		},
