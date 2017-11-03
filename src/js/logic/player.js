@@ -4,6 +4,14 @@
 	const DISP_TIME_COUNT_DOWN		= 1200		// ラウンド開始／終了カウントダウンの通知の表示時間
 	const DISP_TIME_START_FINISH	= 3000		// ラウンド開始／終了の通知の表示時間
 
+	const TYPING_STATUS = {
+		INVALID	: "INVALID",					// 入力できない
+		DOING	: "DOING",						// 順調にタイピング中
+		MISS	: "MISS",						// タイプミスしてる
+		MATCH	: "MATCH",						// 単語と入力内容が完全に一致
+		FINISH	: "FINISH"						// 全部入力完了
+	}
+	
 /**
  * 状態管理オブジェクトの定義
  * 画面はこの値を参照して描写を変える
@@ -18,7 +26,10 @@
 
 	const pnlSelectTeam			= $('#pnl-select-team');
 	const pnlTyping 			= $('#pnl-typing');
-
+	const pnlTypingArea 		= $('#pnl-typing-area');
+	
+	const iconTyping 			= $('#icon-typing');
+	
 	const divBtnTeam 			= $('#btn-team');
 
 	const prgTyping 			= $('#prg-typing');
@@ -27,7 +38,10 @@
 		debug: false,
 		state: {
 			screenInfo: {
-				matchString	: '',			// 入力が一致してる文字
+				typing:{
+					matchString		: '',			// 入力が一致してる文字
+					status			: TYPING_STATUS.INVALID
+				},
 				teamList	: TEAM_LOGO,
 				alert: {
 					type: 'alert alert-info',
@@ -62,11 +76,18 @@
 		 * 一致した文字列の設定
 		 * @param {string} matchString 	一致した文字列
 		 */
-		setMatchString: function (matchString) {
-			this.state.screenInfo.matchString = matchString
+		setMatchString : function (matchString) {
+			this.state.screenInfo.typing.matchString = matchString
 
 			this.drawingView(this.state);
-		},	
+		},
+		/**
+		 * 一致した文字列を返す
+		 */
+		getMatchString: function ()
+		{
+			return this.state.screenInfo.typing.matchString;
+		},
 		/**
 		 * チームボタン押下
 		 * @param {TEAM} team		選択したチーム
@@ -85,8 +106,9 @@
 		notifyRoundInfo: function (roundInfo) {
 			this.state.roundInfo = roundInfo;
 			this.state.screenInfo.roundStatus = ROUND_STATUS.READY;
+			this.state.screenInfo.typing.status = TYPING_STATUS.INVALID;
 			this.state.input.wordsIndex = 0;
-			this.state.screenInfo.matchString = '';
+			this.state.screenInfo.typing.matchString = '';
 
 			this.drawingView(this.state);
 		},
@@ -110,6 +132,7 @@
 			this.state.input.roundId = roundId;
 			this.state.input.startTime = new Date();
 			this.state.screenInfo.roundStatus = ROUND_STATUS.RUNNING;
+			this.state.screenInfo.typing.status = TYPING_STATUS.DOING;
 
 			this.drawingView(this.state);
 		},
@@ -145,6 +168,14 @@
 				return (inputString === this.state.roundInfo.words[store.state.input.wordsIndex].typing);
 			}
 			return false;
+		},
+		/**
+		 * タイピングの状態を設定する
+		 */
+		setTypingStatus: function (status) {
+			this.state.screenInfo.typing.status = status;
+
+			this.drawingView(this.state);
 		},
 		/**
 		 * ラウンドの残り時間を記録する
@@ -220,6 +251,10 @@
 			this.state.input.startTime = new Date();
 			this.state.screenInfo.matchString = '';
 
+			if (this.state.input.wordsIndex >= this.state.roundInfo.words.length) {
+				this.state.screenInfo.typing.status = TYPING_STATUS.FINISH;
+			}
+
 			this.drawingView(this.state);
 		},
 		/**
@@ -279,8 +314,8 @@
 			txtBoxTyping.prop('disabled', !(nowWord && this.state.screenInfo.roundStatus === ROUND_STATUS.RUNNING));
 			if (nowWord) {
 				lblWordView.text(nowWord.view);
-				lblWordTypingMatch.text(this.state.screenInfo.matchString);
-				lblWordTyping.text(nowWord.typing.substring(this.state.screenInfo.matchString.length));
+				lblWordTypingMatch.text(this.state.screenInfo.typing.matchString);
+				lblWordTyping.text(nowWord.typing.substring(this.state.screenInfo.typing.matchString.length));
 				txtBoxTyping.attr('placeholder', nowWord.typing);
 	
 				// iOS用のfocusセット（出来てない。。。）
@@ -303,6 +338,26 @@
 			if (this.state.screenInfo.roundStatus === ROUND_STATUS.READY)
 			{
 				txtBoxTyping.val('');
+			}
+
+			// タイピング状況によって検証スタイルを変える
+			switch (this.state.screenInfo.typing.status)
+			{
+				case TYPING_STATUS.FINISH:
+				case TYPING_STATUS.MATCH:
+					pnlTypingArea.attr({ class: "has-success has-feedback"});
+					iconTyping.attr({ class: "glyphicon glyphicon-ok form-control-feedback"});
+					break;
+				case TYPING_STATUS.MISS:
+					pnlTypingArea.attr({ class: "has-error has-feedback"});
+					iconTyping.attr({ class: "glyphicon glyphicon-warning-sign form-control-feedback"});
+					break;
+				case TYPING_STATUS.INVALID:
+				case TYPING_STATUS.DOING:
+				default:
+					pnlTypingArea.attr({ class: ""});
+					iconTyping.attr({ class: ""});
+					break;
 			}
 		}
 	};
@@ -412,8 +467,19 @@
 			store.setMatchString('');
 		}
 		if ((nowWord)
-		&&	(nowWord.typing.indexOf(inputString) === 0)) {
+		&& 	(nowWord.typing.indexOf(inputString) === 0)) {
 			store.setMatchString(inputString);
+		}
+
+		const matchString = store.getMatchString();
+		if (matchString === nowWord.typing) {		// 入力単語と入力文字が一緒なら完全一致
+			store.setTypingStatus(TYPING_STATUS.MATCH);
+		}
+		else if (inputString === matchString) {		// 入力文字と一致文字が同じなら入力中
+			store.setTypingStatus(TYPING_STATUS.DOING);
+		}
+		else {										// 上記以外はタイプミス
+			store.setTypingStatus(TYPING_STATUS.MISS);
 		}
 	});
 
