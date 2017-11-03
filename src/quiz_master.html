@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <title>ＮＳＴ５周年記念 アメリカ横断　ウルトラクイズ</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="https://unpkg.com/element-ui@1.4.8/lib/theme-default/index.css">
+</head>
+<body>
+  <div id="app">
+    <!-- ヘッダ -->
+    <el-row>
+      <el-col :span="24">
+        <div class="grid-content">
+          <h1>ＮＳＴ５周年記念 アメリカ横断　ウルトラクイズ</h1>
+        </div>
+      </el-col>
+    </el-row>
+    <el-row>
+      <el-col :span="24">
+        <div class="grid-content">
+          <p>
+            <a :href="getControllerUrl" target="_blank"><el-button type="primary" icon="setting"></el-button></a>
+          </p>
+        </div>
+      </el-col>
+    </el-row>
+
+    <!-- debug -->
+    <el-row>
+      <pre>
+        {{ JSON.stringify(questions,null," ") }}
+      </pre>
+      <pre>
+        {{ questionCtlChannel }}
+      </pre>
+    </el-row>
+  </div>
+</body>
+  <!-- Vue.js -->
+  <script src="https://unpkg.com/vue/dist/vue.js"></script>
+  <!-- element-ui -->
+  <script src="https://unpkg.com/element-ui@1.4.8/lib/index.js"></script>
+  <!-- PUBNUB -->
+  <script src="https://cdn.pubnub.com/pubnub.min.js"></script>
+  <!-- app script-->
+  <script src="./js/const/pubnub.js"></script>
+  <script src="./js/const/channel.js"></script>
+  <script src="./js/const/action.js"></script>
+  <script src="./js/const/round.js"></script>
+  <script src="./js/const/team.js"></script>
+  <script src="./js/module/uuid.js"></script>
+  <script src="./js/logic/quiz_master.js"></script>
+</html>
