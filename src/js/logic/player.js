@@ -339,7 +339,7 @@
 				case ROUND_FINISH_COUNT:	// ラウンド終了までのカウントダウン
 					if (store.validRound(json.payload.roundId)) {
 						store.setRoundRemainsSec(json.payload.remainsSec);
-						if (json.payload.remainsSec > 3) {
+						if (json.payload.remainsSec > 10) {
 							store.setAlert('alert alert-info', '残り' + json.payload.remainsSec + '秒')
 						} else {
 							store.setAlert('alert alert-warning', '残り' + json.payload.remainsSec + '秒')
