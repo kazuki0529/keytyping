@@ -236,7 +236,7 @@
       onQuestionFinish:function(){
         var questionTimeKeeper = questionTimeKeeperManager.get();
 
-        if(roundTimeKeeper){
+        if(questionTimeKeeper){
           questionTimeKeeper.stop();
         }
       },

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Quiz Master操作用画面</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="https://unpkg.com/element-ui@1.4.8/lib/theme-default/index.css">
+</head>
+<body>
+  <div id="app">
+    <template>
+      <p>
+        <el-input-number
+          v-model="questionInfo.limitSec"
+          :value="questionInfo.limitSec"
+          :min="20"
+          :max="600">
+        </el-input-number>
+      </p>
+      <p>
+        <el-input
+          type="textarea"
+          :rows="15"
+          v-model="screenInfo.questionString"
+          :value="screenInfo.questionString"
+          placeholder="配信データ">
+        </el-input>
+      </p>
+      <p>
+      <el-button
+        type="primary"
+        size="large"
+        v-on:click="questionStart"
+        :disabled="screenInfo.questionString === ''">スタート</el-button>
+        <el-button
+          type="primary"
+          size="large"
+          v-on:click="questionResult"
+          :disabled="questionInfo.questionId === ''">正解発表</el-button>
+      <el-button
+        type="danger"
+        size="large"
+        v-on:click="questionFinish"
+        :disabled="questionInfo.questionId === ''">終了</el-button>
+      </p>
+    </template>
+  </div>
+</body>
+  <!-- Vue.js -->
+  <script src="https://unpkg.com/vue/dist/vue.js"></script>
+  <!-- element-ui -->
+  <script src="https://unpkg.com/element-ui@1.4.8/lib/index.js"></script>
+  <!-- PUBNUB -->
+  <script src="https://cdn.pubnub.com/pubnub.min.js"></script>
+  <!-- app script-->
+  <script src="./js/const/pubnub.js"></script>
+  <script src="./js/const/channel.js"></script>
+  <script src="./js/const/action.js"></script>
+  <script src="./js/logic/qm_ui.js"></script>
+</html>
