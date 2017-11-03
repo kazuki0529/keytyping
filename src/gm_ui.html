@@ -9,42 +9,52 @@
 <body>
   <div id="app">
     <template>
-      <p>
-        <el-input-number
-          v-model="roundInfo.limitSec"
-          :value="roundInfo.limitSec"
-          :min="20"
-          :max="600">
-        </el-input-number>
-      </p>
-      <p>
-        <el-input
-          v-model="roundInfo.roundName"
-          :value="roundInfo.roundName"
-          placeholder="ラウンド名">
-        </el-input>
-      </p>
-      <p>
-        <el-input
-          type="textarea"
-          :rows="15"
-          v-model="screenInfo.wordsString"
-          :value="screenInfo.wordsString"
-          placeholder="配信データ">
-        </el-input>
-      </p>
-      <p>
-      <el-button
-        type="primary"
-        size="large"
-        v-on:click="roundStart"
-        :disabled="screenInfo.inputWords === ''">スタート</el-button>
-      <el-button
-        type="danger"
-        size="large"
-        v-on:click="roundFinish"
-        :disabled="roundInfo.roundId === ''">終了</el-button>
-      </p>
+      <el-form ref="form" label-position="left" label-width="120px">
+        <el-form-item label="制限時間（秒）">
+          <el-input-number
+            v-model="roundInfo.limitSec"
+            :value="roundInfo.limitSec"
+            :min="15"
+            :max="600">
+          </el-input-number>
+        </el-form-item>
+        <el-form-item label="集計対象人数">
+          <el-input-number
+            v-model="roundInfo.aggregateCount"
+            :value="roundInfo.aggregateCount"
+            :min="1"
+            :max="100">
+          </el-input-number>
+        </el-form-item>
+        <el-form-item label="ラウンド名">
+          <el-input
+            v-model="roundInfo.roundName"
+            :value="roundInfo.roundName"
+            placeholder="ラウンド名">
+          </el-input>
+        </el-form-item>
+        <el-form-item label="配信データ">
+          <el-input
+            type="textarea"
+            :rows="15"
+            v-model="screenInfo.wordsString"
+            :value="screenInfo.wordsString"
+            placeholder="配信データ">
+          </el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button
+            type="primary"
+            size="large"
+            v-on:click="roundStart"
+            :disabled="screenInfo.inputWords === ''">スタート</el-button>
+          <el-button
+            type="danger"
+            size="large"
+            v-on:click="roundFinish"
+            :disabled="roundInfo.roundId === ''">終了</el-button>
+        </el-form-item>
+      </el-form>
     </template>
   </div>        
 </body>

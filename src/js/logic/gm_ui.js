@@ -18,10 +18,11 @@ const store = {
 			])
 		},
 		roundInfo	: {
-			limitSec	: 60,
-			roundId		: '',
-			roundName	: '',
-			words		: []
+			limitSec		: 60,
+			roundId			: '',
+			aggregateCount	: 15,
+			roundName		: '',
+			words			: []
 		}
 	},
 
