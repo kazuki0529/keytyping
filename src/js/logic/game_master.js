@@ -137,17 +137,21 @@
 			var round = this.state.rounds[roundId];
 
 			if(round){
-				Object.keys(round.players).forEach(function(team){
-					round.score[team] = Object.keys(round.players[team]).map(function(userId){
+				Object.keys(round.players).forEach(function (team) {
+					round.score[team] = Object.keys(round.players[team]).map(function (userId) {
 						return round.players[team][userId];
 					})
-					.map(function(playerInfo){
+					.map(function (playerInfo) {
 						//XXX wordsIndexがzero originである前提
 						return playerInfo.input.wordsIndex + 1;
-					})//XXX とりあえず全員分を合算。人数差を考慮するならfilterやsortが必要
-					.reduce(function(prev,current){
+					})
+					// GM UIから渡された集計対象人数だけに絞り込む	
+					.sort(function (a, b) {
+						return (b - a);
+					}).slice(0, round.aggregateCount)
+					.reduce(function (prev, current) {
 						return prev + current;
-					},0);
+					}, 0);
 				});
 				this.refreshRounds();
 			}
