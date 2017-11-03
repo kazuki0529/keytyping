@@ -85,6 +85,8 @@
 		notifyRoundInfo: function (roundInfo) {
 			this.state.roundInfo = roundInfo;
 			this.state.screenInfo.roundStatus = ROUND_STATUS.READY;
+			this.state.input.wordsIndex = 0;
+			this.state.screenInfo.matchString = '';
 
 			this.drawingView(this.state);
 		},
@@ -106,10 +108,8 @@
 		 */
 		roundStart: function (roundId) {
 			this.state.input.roundId = roundId;
-			this.state.input.wordsIndex = 0;
 			this.state.input.startTime = new Date();
 			this.state.screenInfo.roundStatus = ROUND_STATUS.RUNNING;
-			this.state.screenInfo.typing = '';
 
 			this.drawingView(this.state);
 		},
@@ -298,6 +298,12 @@
 			// 通知領域の制御
 			lblAlert.attr({ class: this.state.screenInfo.alert.type });
 			lblAlert.text(this.state.screenInfo.alert.text);
+
+			// ゲーム開始時に入力エリアを初期化
+			if (this.state.screenInfo.roundStatus === ROUND_STATUS.READY)
+			{
+				txtBoxTyping.val('');
+			}
 		}
 	};
 
@@ -396,7 +402,7 @@
 			txtBoxTyping.val('');
 		}
 	});
-	// タイピング成功している箇所については薄いグレーにする
+	// タイピング成功している箇所を強調する
 	txtBoxTyping.keyup(function (e) {
 		const inputString = e.target.value;
 
