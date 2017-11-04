@@ -38,6 +38,7 @@
 			this.state.questions[questionInfo.questionId] = Object.assign({},questionInfo,{
 				status:QUIZ_STATUS.READY,
 				remainsSec:questionInfo.limitSec,
+				tabLabel: "第" + (Object.keys(this.state.questions).length + 1).toString() + "問",
 				panelers:{
 					SPRING:{},
 					SUMMER:{},
@@ -142,9 +143,10 @@
 				//1問目はまだ脱落者なし
 				return true;
 			}else{
+				var self = this;
 				var allSurvivorsId = Object.keys(this.state.survivors)
 					.map(function(team){
-						return this.state.survivors[team].map(function(userInfo){
+						return self.state.survivors[team].map(function(userInfo){
 							return userInfo.userId;
 						});
 					}) // [[a,b,c],[d,e,f],[g,h],[i]]の形式になっているのでreduceする
@@ -355,7 +357,7 @@
       * @param {Object} message イベントメッセージ
       */
       onAnswer:function(message){
-        store.addQuestion(message);
+        store.setPaneler(message.payload);
       }
     };
   }
@@ -521,8 +523,129 @@
     const app = new Vue({
       el 		: "#app",
       data	: store.state,
-      methods : {},
+      methods : {
+				/**
+				* 指定した問題の残り時間を返す
+				* @param {String} questionId 問題ID
+				* @return {String} 残り時間(mm:ss)
+				*/
+				remainsTimeOf:function(questionId){
+					var remainsSec = this.questions[questionId].remainsSec;
+					return Math.floor(remainsSec / 60) + ":" + ("0" + (remainsSec % 60).toString()).substr(-2,2);
+				},
+				/**
+				* 指定した問題/選択肢を選んでいる人数を取得する
+				* @param {String} questionId 問題ID
+				* @param {int} selectIndex 選択肢のインデックス
+				* @return {int} 人数
+				*/
+				panelersCountOf:function(questionId,selectIndex){
+					var self = this;
+					return Object.keys(this.questions[questionId].panelers)
+						.map(function(team){
+							return Object.keys(self.questions[questionId].panelers[team]).map(function(userId){
+								return self.questions[questionId].panelers[team][userId];
+							});
+						})
+						.reduce(function(prev,next){
+							return prev.concat(next);
+						},[])
+						.filter(function(panelerInfo){
+							return panelerInfo.answer.selectIndex === selectIndex
+						})
+						.length;
+				},
+				/**
+				* 問題が回答表示状態かどうか
+				* @param {String} questionId 問題ID
+				* @return {boolean} 回答表示状態であればtrue
+				*/
+				isResultOpen:function(questionId){
+					return this.questions[questionId].status === QUIZ_STATUS.RESULT_OPENED;
+				},
+				/**
+				* 選択肢が正解かどうか
+				* @param {String} questionId 問題ID
+				* @param {int} selectIndex 選択肢インデックス
+				* @return {boolean} 正解であればtrue
+				*/
+				isCorrectAnswer:function(questionId,selectIndex){
+					return this.questions[questionId].selections[selectIndex].isCorrect;
+				},
+				/**
+				* 指定されたチームのロゴのパスを取得する
+				* @param {string} team チームキー
+				* @return {string} ロゴへの相対パス
+				*/
+				getTeamLogoPath:function( key ){
+					const team = TEAM_LOGO.filter( function( team ){
+						return team.key === key;
+					});
+
+					if( team.length === 1 )
+					{
+						return team[0].image;
+					}
+					else
+					{
+						return '';
+					}
+				},
+				/**
+				* チームの全問正解者数
+				* @param {String} team
+				* @return {int} 正解者数
+				*/
+				getSurvivorsCountOf(team){
+					return this.survivors[team].length;
+				}
+			},
       computed: {
+				/**
+				* 問題情報が存在するかどうか
+				* @return {boolean} １つでも存在すればTrue
+				*/
+				hasQuestion : function(){
+					return Object.keys(this.questions).length > 0;
+				},
+				/**
+				* questionsを配列にした結果を返す
+				* @return {array} questionsの配列
+				*/
+				questionsArray : function(){
+					var self = this;
+					return Object.keys(this.questions).map(function(key){return self.questions[key]});
+				},
+				/**
+				* アクティブにすべきTabNameを返す
+				* @return {string} TabName
+				*/
+				activeTabName : function(){
+					//TabNameはquestionIdに紐づいているので
+					//最後のquestionIdを返す
+					var questionIds = Object.keys(this.questions);
+					if(questionIds.length > 0){
+						return questionIds[questionIds.length - 1];
+					}else{
+						return "";
+					}
+				},
+				/**
+				* 全問正解者の人数を表示すべきかどうか
+				* @return {boolean} 表示すべきであればtrue
+				*/
+				hasToShowSurvivor:function(){
+					var self = this;
+					//今までの全問題が回答表示状態であれば表示する
+					return Object.keys(this.questions)
+						.map(function(questionId){
+							return self.questions[questionId];
+						})
+						.filter(function(question){
+							return question.status !== QUIZ_STATUS.RESULT_OPENED
+						})
+						.length === 0;
+				},
         /**
          * Controllerへのリンクを生成
          */
