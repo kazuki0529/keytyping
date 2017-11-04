@@ -1,0 +1,6 @@
+const QUIZ_STATUS = {
+  READY:"READY",//準備中
+  RUNNING:"RUNNING",//実行中
+  FINISH:"FINISH",//完了
+  RESULT_OPENED:"RESULT_OPENED"//結果発表済み
+}

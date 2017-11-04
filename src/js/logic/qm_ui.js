@@ -39,7 +39,7 @@ const store = {
 	},
 	questionStart( question )
 	{
-		this.state.questionInfo.questionData = question;
+		this.state.questionInfo = Object.assign({},this.state.questionInfo,question);
 	},
 
 	/**

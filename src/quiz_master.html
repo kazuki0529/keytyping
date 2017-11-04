@@ -16,6 +16,137 @@
         </div>
       </el-col>
     </el-row>
+    <!-- 準備中画面 -->
+    <el-row v-if="! hasQuestion">
+      <el-col :span="24">
+        <div class="grid-content">
+          <el-card class="box-card">
+            <div slot="header" class="clearfix">
+              <span style="line-height: 36px;">現在準備中です(￣∇￣)</span>
+            </div>
+            <div>
+              お手持ちのスマホで以下にアクセスしてください。<br />
+              <a href="dummy">https://xxxxx/xxx/</a>
+            </div>
+          </el-card>
+        </div>
+      </el-col>
+    </el-row>
+    <el-row v-if="hasQuestion">
+      <el-col :span="24">
+        <el-tabs :value="activeTabName">
+          <el-tab-pane v-for="question in questionsArray" :key="question.questionId" :label="question.tabLabel"　:name="question.questionId">
+            <!--残り時間と状態-->
+            <el-row>
+              <el-col :span="8">
+                <span style="font-size:x-large">残り　{{ remainsTimeOf(question.questionId) }}</span>
+              </el-col>
+              <el-col :span="8" style="margin-bottom:10px">
+                <el-alert
+                  v-if="question.status === 'RUNNING'"
+                  title="回答受付中"
+                  type="success"
+                  :closable="false"
+                  >
+                </el-alert>
+                <el-alert
+                  v-if="question.status === 'READY'"
+                  title="準備中"
+                  type="warning"
+                  :closable="false">
+                </el-alert>
+                <el-alert
+                  v-if="question.status === 'FINISH'"
+                  title="終了"
+                  type="error"
+                  :closable="false">
+                </el-alert>
+              </el-col>
+              <el-col :span="8">
+              </el-col>
+            </el-row>
+            <!--問題-->
+            <el-row>
+              <el-col :span="24">
+                <el-card class="box-card">
+                  <div slot="header" class="clearfix">
+                    問題
+                  </div>
+                  <div style="font-size:x-large">
+                    {{ question.question }}
+                  </div>
+                </el-card>
+              </el-col>
+            </el-row>
+            <!--選択肢-->
+            <el-row>
+              <el-col
+                v-for="selection in question.selections"
+                :span="24 / question.selections.length"
+                :key="selection.symbol"
+              >
+                <el-card class="box-card">
+                  <div slot="header" class="clearfix" style="font-size:x-large">
+                    <span
+                      v-if="isResultOpen(question.questionId) && isCorrectAnswer(question.questionId,question.selections.indexOf(selection))"
+                      style="color:red"
+                    >
+                      {{ selection.symbol }} : {{ selection.label }}
+                    </span>
+                    <span
+                      v-if="!(isResultOpen(question.questionId) && isCorrectAnswer(question.questionId,question.selections.indexOf(selection)))"
+                    >
+                      {{ selection.symbol }} : {{ selection.label }}
+                    </span>
+                  </div>
+                  <div style="font-size:4em">
+                    <span
+                      v-if="isResultOpen(question.questionId) && isCorrectAnswer(question.questionId,question.selections.indexOf(selection))"
+                      style="color:red"
+                    >
+                      {{ panelersCountOf(question.questionId, question.selections.indexOf(selection)) }}
+                    </span>
+                    <span
+                      v-if="!(isResultOpen(question.questionId) && isCorrectAnswer(question.questionId,question.selections.indexOf(selection)))"
+                    >
+                      {{ panelersCountOf(question.questionId, question.selections.indexOf(selection)) }}
+                    </span>
+                  </div>
+                </el-card>
+              </el-col>
+            </el-row>
+            <!-- 回答文 -->
+            <el-row v-if="isResultOpen(question.questionId)">
+              <el-col :span="24">
+                <el-card class="box-card">
+                  <div style="color:red;font-size:x-large">
+                    {{ question.comment }}
+                  </div>
+                </el-card>
+              </el-col>
+            </el-row>
+          </el-tab-pane>
+        </el-tabs>
+      </el-col>
+    </el-row>
+    <!-- 全問正解者 -->
+    <el-row v-if="hasQuestion">
+      <el-col :span="6" v-for="team in Object.keys(survivors)" :key="team">
+        <el-card class="box-card">
+          <div class="clearfix">
+            <img :src="getTeamLogoPath(team)" />
+            <span style="float:right; font-size:4em">
+              <span v-if="hasToShowSurvivor">
+                {{ getSurvivorsCountOf(team) }}
+              </span>
+              <span v-if="! hasToShowSurvivor">
+                ?
+              </span>
+            </span>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
     <el-row>
       <el-col :span="24">
         <div class="grid-content">
@@ -27,14 +158,17 @@
     </el-row>
 
     <!-- debug -->
-    <el-row>
+    <!--el-row>
       <pre>
         {{ JSON.stringify(questions,null," ") }}
       </pre>
       <pre>
+        {{ JSON.stringify(survivors,null," ") }}
+      </pre>
+      <pre>
         {{ questionCtlChannel }}
       </pre>
-    </el-row>
+    </el-row-->
   </div>
 </body>
   <!-- Vue.js -->
@@ -47,7 +181,7 @@
   <script src="./js/const/pubnub.js"></script>
   <script src="./js/const/channel.js"></script>
   <script src="./js/const/action.js"></script>
-  <script src="./js/const/round.js"></script>
+  <script src="./js/const/quiz.js"></script>
   <script src="./js/const/team.js"></script>
   <script src="./js/module/uuid.js"></script>
   <script src="./js/logic/quiz_master.js"></script>
