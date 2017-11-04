@@ -16,23 +16,50 @@
       questionCtlChannel:generateUUID(),
       questions:{
 
-      }
+      },
+			survivors:{
+				SPRING:[],
+				SUMMER:[],
+				AUTUMN:[],
+				WINTER:[]
+			}
     },
+		/**
+		* questions stateを更新する（これをやらないとquestionsの変更がvueに反映されない）
+		*/
+		refreshQuestions:function(){
+			this.state.questions = Object.assign({},this.state.questions);
+		},
     /**
     * 問題を追加する
     * @param {Object} questionInfo 問題情報
     */
     addQuestion:function(questionInfo){
-      //TODO 仮実装
-      return;
+			this.state.questions[questionInfo.questionId] = Object.assign({},questionInfo,{
+				status:QUIZ_STATUS.READY,
+				remainsSec:questionInfo.limitSec,
+				panelers:{
+					SPRING:{},
+					SUMMER:{},
+					AUTUMN:{},
+					WINTER:{}
+				}
+			});
+
+			this.refreshQuestions();
     },
     /**
     * 問題を実行中にする
     * @param {String} questionId 問題ID
     */
     setQuestionRunning:function(questionId){
-      //TODO 仮実装
-      return;
+			var question = this.state.questions[questionId];
+			if(question){
+				if(question.status === QUIZ_STATUS.READY){
+					this.state.questions[questionId].status = QUIZ_STATUS.RUNNING;
+					this.refreshQuestions();
+				}
+			}
     },
     /**
     * 問題の残り時間を更新する
@@ -40,20 +67,40 @@
     * @param {int} remainsSec 更新後の残り時間
     */
     updateRemainsSec:function(questionId,remainsSec){
-      //TODO 仮実装
+			var question = this.state.questions[questionId];
+
+			if(question){
+				if(question.status === QUIZ_STATUS.RUNNING){
+					this.state.questions[questionId].remainsSec = remainsSec;
+					this.refreshQuestions();
+				}
+			}
     },
     /**
     * 問題を完了する
     * @param {String} questionId 問題ID
     */
     setQuestionFinish:function(questionId){
-      //TODO 仮実装
+			var question = this.state.questions[questionId];
+
+			if(question){
+				this.state.questions[questionId].status = QUIZ_STATUS.FINISH;
+				this.state.questions[questionId].remainsSec = 0;
+				this.refreshQuestions();
+			}
     },
     /**
     * 完了した問題の結果を公開する
     */
     setQuestionResultOpen:function(){
-      //TODO 仮実装
+			var self = this;
+      Object.keys(this.state.questions).forEach(function(questionId){
+				if(self.state.questions[questionId].status === QUIZ_STATUS.FINISH){
+					self.state.questions[questionId].status = QUIZ_STATUS.RESULT_OPENED;
+				}
+			});
+
+			this.refreshQuestions();
     },
     /**
     * 指定された問題終了時点での全問正解者リストを表示する
@@ -61,22 +108,79 @@
     * @return {Object} 全問正解者リスト
     */
     getSurvivorsOf:function(questionId){
-      //TODO仮実装
-      return {
-        SPRING:[],
-        SUMMER:[],
-        AUTUMN:[],
-        WINTER:[]
-      }
+			var question = this.state.questions[questionId];
+
+			if(question){
+				if(question.status === QUIZ_STATUS.FINISH){
+					this.checkSurvivors(questionId);
+		      return this.state.questions[questionId].survivors;
+				}
+			}
     },
     /**
     * 問題に回答者情報を設定する
     * @param {String} questionId 問題ID
-    * @param {Object} pannelerInfo 回答者情報
+    * @param {Object} panelerInfo 回答者情報
     */
-    setPaneler(questionId,pannelerInfo){
+    setPaneler(questionId,panelerInfo){
+			var question = this.state.questions[questionId];
 
+			if(question){
+				if(question.status === QUIZ_STATUS.RUNNING && this.isSurvivor(panelerInfo.userInfo.userId)){
+					this.state.questions[questionId].panelers[panelerInfo.userInfo.team][panelerInfo.userInfo.userId] = panelerInfo;
+					this.refreshQuestions();
+				}
+			}
     },
+		/**
+		* 対象のユーザーが全問正解者か判定する
+		* @param {String} userId ユーザーID
+		* @return {boolean} 全問正解者であればtrue
+		*/
+		isSurvivor:function(userId){
+			if(Object.keys(this.state.questions) === 1){
+				//1問目はまだ脱落者なし
+				return true;
+			}else{
+				var allSurvivorsId = Object.keys(this.state.survivors)
+					.map(function(team){
+						return this.state.survivors[team].map(function(userInfo){
+							return userInfo.userId;
+						});
+					}) // [[a,b,c],[d,e,f],[g,h],[i]]の形式になっているのでreduceする
+					.reduce(function(prev,next){
+						return prev.concat(next);
+					},[]);
+
+				return allSurvivorsId.indexOf(userId) >= 0;
+			}
+		},
+		/**
+		* 問題の正解者を確認する
+		* @param {String} questionId 問題ID
+		*/
+		checkSurvivors:function(questionId){
+			var question = this.state.questions[questionId];
+
+			if(question){
+				var self = this;
+				Object.keys(question.panelers).forEach(function(team){
+					self.state.survivors[team] = Object.keys(question.panelers[team]).map(function(userId){
+						return question.panelers[team][userId];
+					})
+					.filter(function(panelerInfo){
+						//正解者のみに絞り込む
+						return question.selections[panelerInfo.answer.selectIndex].isCorrect;
+					})
+					.map(function(panelerInfo){
+						//userInfoのみ格納する
+						return panelerInfo.playerInfo;
+					})
+				});
+
+				this.state.survivors = Object.assign({},this.state.survivors);
+			}
+		},
     /**
 		 * 問題操作用のチャンネル情報を返す
      * @return {String} 問題操作用チャンネル
@@ -326,6 +430,9 @@
 		*/
 		this.start = function(){
 			this.onReadyCallback();
+			if(this.readySec === 0){
+				this.onStartCallback();
+			}
 
 			var self = this;
 			this.currentTimerId = setInterval(
