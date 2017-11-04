@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <title>ＮＳＴ５周年記念 アメリカ横断　ウルトラクイズ</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="./css/bootstrap_custom.css">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" rel="stylesheet">
+  </head>
+  <body>
+    <!-- ヘッダ部 -->
+    <nav class="navbar navbar-inverse">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">
+            アメリカ横断　ウルトラクイズ
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- 入力画面メイン部分-->
+    <div class="panel panel-default">
+      <div id="pnl-header" class="panel-heading">
+        <div id="lbl-user-name"></div>
+        <div id="lbl-count-down"></div>
+      </div>
+
+      <!-- 名前とチーム選択部分定義 -->
+      <div id="pnl-select-team" class="panel-body">
+        <input id="txtbox-user-name" type="text" class="form-control" placeholder="社員番号か名前をいれてください">
+        <div id="btn-team">
+        </div>
+      </div>
+
+      <!-- 回答部分の定義 -->
+      <div id="pnl-paneler" class="panel-body hidden">
+        <div id="lbl-alert" class="alert alert-info" role="alert" style="padding:8px; margin-bottom:8px;"></div>
+        <div id="lbl-question"></div>
+        <div id="pnl-selection" class="list-group">
+        </div>
+      </div>
+      <div class="panel-footer">
+      </div>
+    </div>
+
+  </body>
+  <!-- PUBNUB -->
+  <script src="https://cdn.pubnub.com/pubnub.min.js"></script>
+  <!-- Jquerry -->
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+  <!--
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  -->
+  <!-- Bootstrap -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+    <!-- app script-->
+  <script src="./js/const/pubnub.js"></script>
+  <script src="./js/const/channel.js"></script>
+  <script src="./js/const/action.js"></script>
+  <script src="./js/const/quiz.js"></script>
+  <script src="./js/const/team.js"></script>
+  <script src="./js/module/uuid.js"></script>
+  <script src="./js/logic/paneler.js"></script>
+</html>
