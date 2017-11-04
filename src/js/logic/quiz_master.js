@@ -139,7 +139,7 @@
 		* @return {boolean} 全問正解者であればtrue
 		*/
 		isSurvivor:function(userId){
-			if(Object.keys(this.state.questions) === 1){
+			if(Object.keys(this.state.questions).length === 1){
 				//1問目はまだ脱落者なし
 				return true;
 			}else{
@@ -176,7 +176,7 @@
 					})
 					.map(function(panelerInfo){
 						//userInfoのみ格納する
-						return panelerInfo.playerInfo;
+						return panelerInfo.userInfo;
 					})
 				});
 
@@ -357,7 +357,8 @@
       * @param {Object} message イベントメッセージ
       */
       onAnswer:function(message){
-        store.setPaneler(message.payload);
+				console.dir(message);
+        store.setPaneler(message.payload.answer.questionId,message.payload);
       }
     };
   }
