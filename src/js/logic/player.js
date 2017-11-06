@@ -296,10 +296,16 @@
 			else if (divBtnTeam.children().length === 0) {
 				this.state.screenInfo.teamList.map(function (value) {
 					divBtnTeam.append(
-						$('<a/>').attr({
-							onclick: 'selectTeam( \'' + value.key + '\' )'
+							$('<div/>').attr({
+								class: 'col-xs-3'
+						})
+						.append(
+							$('<a/>').attr({
+								class	: 'thumbnail',
+								onclick	: 'selectTeam( \'' + value.key + '\' )'
 						}).append($('<img/>').attr(
-							{ src: value.image })));
+									{ src: value.image }
+					))));
 				});
 			}
 	
