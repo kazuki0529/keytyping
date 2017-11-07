@@ -129,24 +129,6 @@
         </el-tabs>
       </el-col>
     </el-row>
-    <!-- 全問正解者 -->
-    <el-row v-if="hasQuestion">
-      <el-col :span="6" v-for="team in Object.keys(survivors)" :key="team">
-        <el-card class="box-card">
-          <div class="clearfix">
-            <img :src="getTeamLogoPath(team)" />
-            <span style="float:right; font-size:4em">
-              <span v-if="hasToShowSurvivor">
-                {{ getSurvivorsCountOf(team) }}
-              </span>
-              <span v-if="! hasToShowSurvivor">
-                ?
-              </span>
-            </span>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
     <el-row>
       <el-col :span="24">
         <div class="grid-content">
@@ -161,9 +143,6 @@
     <!--el-row>
       <pre>
         {{ JSON.stringify(questions,null," ") }}
-      </pre>
-      <pre>
-        {{ JSON.stringify(survivors,null," ") }}
       </pre>
       <pre>
         {{ questionCtlChannel }}
