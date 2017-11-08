@@ -680,6 +680,7 @@
       channel: store.getQuestionCtlChannel(),
       message: function( message ){
         json = JSON.parse( message );
+				console.log(json.type);
         console.dir(json);
         switch( json.type )
         {
@@ -703,6 +704,7 @@
       channel: QUIZ_ANSWER,
       message: function( message ){
         json = JSON.parse( message );
+				console.log(json.type);
         console.dir(json);
         switch( json.type )
         {
