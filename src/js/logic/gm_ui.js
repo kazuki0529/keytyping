@@ -42,16 +42,19 @@ const store = {
 	 */
 	getRoundCtlChannel() {
 		return this.state.screenInfo.roundCtlChannel;
+	},
+	/**
+	 * ラウンド情報のgetter
+	 */
+	getRoundInfo() {
+		return this.state.roundInfo;
 	}
 };
 
 
 /**
  * PUBNUBインスタンスの初期化とsubscribe設定
- * publish用にPUBNUBインスタンスをグローバル化（ほかにいい方法ない？）
  */
-var pubnub = undefined;
-$(document).ready(function(){
 	// PUBNUBの初期化処理
 	pubnub = PUBNUB.init({
 		publish_key:    PUBLISH_KEY,
@@ -84,8 +87,6 @@ $(document).ready(function(){
 		}
 	});
 
-});
-
 
 /**
 * メインのVueコンポーネント
@@ -113,10 +114,13 @@ const app = new Vue({
 				});
 			},
 		roundFinish :
-			function() {
+			function () {
+				const roundInfo = store.getRoundInfo();
 				const sendData = {
 					type	: ROUND_FINISH,
-					payload	: {}
+					payload: {
+						roundId : roundInfo.roundId
+					}
 				};
 				pubnub.publish({
 					channel: store.getRoundCtlChannel(),

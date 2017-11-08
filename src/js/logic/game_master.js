@@ -686,7 +686,8 @@
 		pubnub.subscribe({
 			channel: store.getRoundCtlChannel(),
 			message: function( message ){
-				json = JSON.parse( message );
+				json = JSON.parse(message);
+				console.log(json.type);
 				console.dir(json);
 				switch( json.type )
 				{
@@ -707,6 +708,7 @@
 			channel: ANSWER,
 			message: function( message ){
 				json = JSON.parse( message );
+				console.log(json.type);
 				console.dir(json);
 				switch( json.type )
 				{
