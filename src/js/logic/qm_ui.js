@@ -144,6 +144,43 @@ const app = new Vue({
           message : '結果発表要求メッセージを送信しました。',
           type : 'success'
         });
-      }
+			},
+		openRanking :
+			function (mode) {
+				const sendData = {
+					type: RANKING_OPEN,
+					payload: {
+						mode: mode
+					}
+				};
+        pubnub.publish({
+          channel: store.getQuestionCtlChannel(),
+          message: JSON.stringify( sendData )
+        });
+
+				const message = (mode === RANKING_MODE.TOTAL ? '総合' : 'チーム別') + 'ランキング表示要求メッセージを送信しました。';
+        this.$notify({
+          title : 'Success',
+          message : message,
+          type : 'success'
+        });
+			},
+		closeRanking :
+			function () {
+				const sendData = {
+					type: RANKING_CLOSE,
+					payload: {}
+				};
+        pubnub.publish({
+          channel: store.getQuestionCtlChannel(),
+          message: JSON.stringify( sendData )
+        });
+				
+        this.$notify({
+          title : 'Success',
+          message : 'ランキングクローズ要求メッセージを送信しました。',
+          type : 'success'
+        });
+			}
 	}
 });
