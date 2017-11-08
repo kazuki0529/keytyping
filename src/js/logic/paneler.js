@@ -90,6 +90,7 @@ const store = {
 	 * @param {string} questionId
 	 */
 	quizStart: function (questionId) {
+		this.state.quizInfo.startTime		= new Date();
 		this.state.answer.questionId 		= questionId;
 		this.state.screenInfo.quizStatus 	= QUIZ_STATUS.RUNNING;
 
@@ -145,7 +146,7 @@ const store = {
 		if (this.state.screenInfo.quizStatus === QUIZ_STATUS.RUNNING)
 		{	
 			this.state.answer.selectIndex 	= index;
-			this.state.answer.selectTime 	= new Date();
+			this.state.answer.selectTime 	= Math.floor((new Date().getTime() - this.state.quizInfo.startTime.getTime()) / 1000);
 		}
 
 		this.drawingView(this.state);
