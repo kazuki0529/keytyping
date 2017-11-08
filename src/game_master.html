@@ -5,6 +5,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="https://unpkg.com/element-ui@1.4.8/lib/theme-default/index.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.5.1" type="text/css">
+  <style type="text/css">
+    .comment-animation {
+      animation-duration: 25s;
+    }
+  </style>
 </head>
 <body>
   <div id="app">
@@ -117,6 +123,20 @@
         </div>
       </el-col>
     </el-row>
+
+    <!-- ニコニコ動画のコメント風描画 -->
+    <div>
+      <transition
+        appear
+        name="custom-classes-transition"
+        enter-active-class="animated slideInRight comment-animation"
+        :key="comment.id"
+        v-for="comment in comments"
+        v-on:after-appear="apperComment"
+        v-on:after-leave="leaveComment">
+        <div :id="comment.id" v-if="comment.show" :style="comment.style">{{comment.str}}</div>
+      </transition>
+    </div>
 
     <!-- debug -->
     <!--el-row>
