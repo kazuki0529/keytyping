@@ -47,6 +47,12 @@ const store = {
 	 */
 	getQuestionCtlChannel() {
 		return this.state.screenInfo.questionCtlChannel;
+	},
+	/**
+	 * クイズ情報のgetter
+	 */
+	getQuestionInfo() {
+		return this.state.questionInfo;
 	}
 };
 
@@ -100,10 +106,13 @@ const app = new Vue({
 				});
 			},
 		questionFinish :
-			function() {
+			function () {
+				const questionInfo = store.getQuestionInfo();
 				const sendData = {
 					type	: QUESTION_FINISH,
-					payload	: {}
+					payload: {
+						questionId: questionInfo.questionId
+					}
 				};
 				pubnub.publish({
 					channel: store.getQuestionCtlChannel(),
@@ -112,15 +121,18 @@ const app = new Vue({
 
 				this.$notify({
 					title	: 'Success',
-					message	: 'ラウンド終了メッセージを送信しました。',
+					message	: '問題終了メッセージを送信しました。',
 					type	: 'success'
 				});
 			},
     questionResult :
       function() {
+				const questionInfo = store.getQuestionInfo();
         const sendData = {
           type: RESULT,
-          payload:{}
+					payload: {
+						questionId: questionInfo.questionId
+					}
         };
         pubnub.publish({
           channel: store.getQuestionCtlChannel(),
