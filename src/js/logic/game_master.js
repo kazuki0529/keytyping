@@ -16,8 +16,8 @@
 		debug	: false,
 		state: {
 			roundCtlChannel: generateUUID(),
-			rounds: {}
-			
+			rounds: {},
+			comments: []
 		},
 		/**
 		* rounds stateを更新する（これをやらないとroundsの変更がvueに反映されない）
@@ -47,6 +47,9 @@
 					WINTER:0
 				}
 			});
+
+			// after-leaveで消せない時があるのでここでコメントを初期化
+			this.state.comments = [];
 
 			this.refreshRounds();
 		},
@@ -125,6 +128,39 @@
 					round.players[playerInfo.userInfo.team][playerInfo.userInfo.userId] = playerInfo;
 					this.calcScore(roundId);
 					this.refreshRounds();
+
+					/**
+					 * コメントデータの登録
+					 * 縦位置やフォントサイズをランダムで表示
+					 */
+					const team = TEAM_LOGO.filter(function (team) {
+						return team.key === playerInfo.userInfo.team;
+					});
+					const config = {
+						left: "-100%",	// 最終的には領域外に配置
+						top: (Math.floor(Math.random() * parseInt(512)) + 48) + "px",
+						fontSize: (Math.floor(Math.random() * parseInt(16)) + 24) + "px",
+						color: team.length === 1 ? team[0].color : 'white'
+					};
+					this.state.comments.push({
+						id: generateUUID(),
+						userInfo:playerInfo.userInfo,
+						str: round.words[playerInfo.input.wordsIndex].view + '@' + playerInfo.userInfo.userName,
+						style: 'position:absolute;font-weight:bold;width:205%;z-index:99999;cursor:default;'
+							+ 'text-shadow:black 2px 0px,  black -2px 0px,'
+							+ 'black 0px -2px, black 0px 2px,'
+							+ 'black 2px 2px , black -2px 2px,'
+							+ 'black 2px -2px, black -2px -2px,'
+							+ 'black 1px 2px,  black -1px 2px,'
+							+ 'black 1px -2px, black -1px -2px,'
+							+ 'black 2px 1px,  black -2px 1px,'
+							+ 'black 2px -1px, black -2px -1px;'
+							+ 'top:' + config.top + ';'
+							+ 'left:' + config.left + ';'
+							+ 'color:' + config.color + ';'
+							+ 'font-size:' + config.fontSize + ';',
+						show: true
+					})
 				}
 			}
 		},
@@ -145,7 +181,7 @@
 						//XXX wordsIndexがzero originである前提
 						return playerInfo.input.wordsIndex + 1;
 					})
-					// GM UIから渡された集計対象人数だけに絞り込む	
+					// GM UIから渡された集計対象人数だけに絞り込む
 					.sort(function (a, b) {
 						return (b - a);
 					}).slice(0, round.aggregateCount)
@@ -551,7 +587,7 @@
 					const team = TEAM_LOGO.filter( function( team ){
 						return team.key === key;
 					});
-		
+
 					if( team.length === 1 )
 					{
 						return team[0].image;
@@ -560,6 +596,28 @@
 					{
 						return '';
 					}
+				},
+				/**
+				 * コメントが追加された後のイベント
+				 * すぐに非表示にする
+				 * @param {object} el コメントのdivエレメント
+				 */
+				apperComment: function (el) {
+					store.state.comments.some(function (v, i) {
+						if (v.id == el.id) store.state.comments[i].show = false;
+					});
+				},
+				/**
+				 * コメントがフェードアウトした時のイベント
+				 * 対象のコメントを削除する
+				 * @param {object} el コメントのdivエレメント
+				 */
+				leaveComment: function (el) {
+					/* 大量にコメントが流れると上手く消えないケースがあるので、ROUND_READYでクリアすることにする。
+					store.state.comments.some(function (v, i) {
+						if (v.id == el.id) store.state.comments.splice(i, 1);
+					});
+					*/
 				}
 			},
 			computed: {

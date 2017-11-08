@@ -9,8 +9,8 @@ const TEAM = {
 
 // チームのロゴ情報
 const TEAM_LOGO = [
-	{ key: TEAM.SPRING, image: './img/spring.png' },
-	{ key: TEAM.SUMMER, image: './img/summer.png' },
-	{ key: TEAM.AUTUMN, image: './img/autumn.png' },
-	{ key: TEAM.WINTER, image: './img/winter.png' }
+	{ key: TEAM.SPRING, image: './img/spring.png', color: 'rgb(202, 235, 190)' },
+	{ key: TEAM.SUMMER, image: './img/summer.png', color: 'rgb(194, 215, 233)' },
+	{ key: TEAM.AUTUMN, image: './img/autumn.png', color: 'rgb(255, 225, 169)' },
+	{ key: TEAM.WINTER, image: './img/winter.png', color: 'rgb(243, 199, 199)' }
 ];
