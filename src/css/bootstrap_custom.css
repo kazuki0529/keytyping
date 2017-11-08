@@ -1,10 +1,12 @@
 /* タイピング画面ルビの装飾 */
 .text-typing-match {
   font-size:20px;
-  color: #777;
+  color: rgb(201, 201, 201);
   text-decoration: line-through;
   float:left;
 }
 .text-typing {
   font-size:20px;
+  text-decoration: underline;
+  font-style: oblique;
 }
