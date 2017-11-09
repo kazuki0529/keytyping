@@ -138,7 +138,7 @@
 					});
 					const config = {
 						left: "-100%",	// 最終的には領域外に配置
-						top: (Math.floor(Math.random() * parseInt(512)) + 48) + "px",
+						top: Math.floor(Math.random() * parseInt(512)) + "px",
 						fontSize: (Math.floor(Math.random() * parseInt(16)) + 24) + "px",
 						color: team.length === 1 ? team[0].color : 'white'
 					};
@@ -198,6 +198,12 @@
 		 */
 		getRoundCtlChannel() {
 			return this.state.roundCtlChannel;
+		},
+		/**
+		 * コメント用のgetter
+		 */
+		getComments(){
+			return this.state.comments;
 		}
 	};
 
@@ -656,6 +662,12 @@
 				 */
 				getControllerUrl : function () {
 					return './gm_ui.html?' + store.getRoundCtlChannel();
+				},
+				/**
+				 * コメントを表示するかの判定
+				 */
+				hasViewComment: function () {
+					return store.getComments().filter(function (v) { return v.show; }).length > 0;
 				}
 			}
 		});
