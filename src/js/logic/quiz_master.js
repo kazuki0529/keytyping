@@ -14,9 +14,8 @@
   const store = {
     state:{
       questionCtlChannel:generateUUID(),
-      questions:{
-
-      }
+			questions: {},
+			ranking : []
     },
 		/**
 		* questions stateを更新する（これをやらないとquestionsの変更がvueに反映されない）
@@ -33,12 +32,7 @@
 				status:QUIZ_STATUS.READY,
 				remainsSec:questionInfo.limitSec,
 				tabLabel: "第" + (Object.keys(this.state.questions).length + 1).toString() + "問",
-				panelers:{
-					SPRING:{},
-					SUMMER:{},
-					AUTUMN:{},
-					WINTER:{}
-				}
+				panelers:[]
 			});
 
 			this.refreshQuestions();
@@ -78,10 +72,35 @@
     setQuestionFinish:function(questionId){
 			var question = this.state.questions[questionId];
 
-			if(question){
+			if (question) {
 				this.state.questions[questionId].status = QUIZ_STATUS.FINISH;
 				this.state.questions[questionId].remainsSec = 0;
 				this.refreshQuestions();
+
+				// ランキング表示用に集計作業を行う
+				const self = this;
+				const panelers = this.state.questions[questionId].panelers;
+				Object.assign(Object.keys(this.state.ranking), Object.keys(panelers)).map(function (userId) {
+					const isCorrect = question.selections[panelers[userId].answer.selectIndex].isCorrect;
+					if (question.selections[panelers[userId].answer.selectIndex]) {
+						// どっちにもある場合は単純な加算
+						if ((self.state.ranking[userId]) && (panelers[userId])) {
+							self.state.ranking[userId].userInfo = panelers[userId].userInfo;
+							if (isCorrect) {
+								self.state.ranking[userId].correctCount++;
+								self.state.ranking[userId].selectTime += panelers[userId].answer.selectTime;
+							}
+						}
+						// 第１問目 or 途中参加の場合は、rankingに新規登録
+						else if (!(self.state.ranking[userId]) && (panelers[userId])) {
+							self.state.ranking[userId] = {
+								userInfo: panelers[userId].userInfo,
+								correctCount: isCorrect ? 1 : 0,
+								selectTime: isCorrect ? panelers[userId].answer.selectTime : 0
+							}
+						}
+					}
+				});
 			}
     },
     /**
@@ -107,7 +126,7 @@
 
 			if(question){
 				if(question.status === QUIZ_STATUS.RUNNING){
-					this.state.questions[questionId].panelers[panelerInfo.userInfo.team][panelerInfo.userInfo.userId] = panelerInfo;
+					this.state.questions[questionId].panelers[panelerInfo.userInfo.userId] = panelerInfo;
 					this.refreshQuestions();
 				}
 			}
@@ -469,14 +488,9 @@
 				panelersCountOf:function(questionId,selectIndex){
 					var self = this;
 					return Object.keys(this.questions[questionId].panelers)
-						.map(function(team){
-							return Object.keys(self.questions[questionId].panelers[team]).map(function(userId){
-								return self.questions[questionId].panelers[team][userId];
-							});
+						.map(function (userId) {
+							return self.questions[questionId].panelers[userId];
 						})
-						.reduce(function(prev,next){
-							return prev.concat(next);
-						},[])
 						.filter(function(panelerInfo){
 							return panelerInfo.answer.selectIndex === selectIndex
 						})
