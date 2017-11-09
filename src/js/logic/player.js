@@ -28,6 +28,7 @@
 	const pnlTyping 			= $('#pnl-typing');
 	const pnlTypingArea 		= $('#pnl-typing-area');
 	
+	const imgTeamLogo 			= $('#img-team-logo');
 	const iconTyping 			= $('#icon-typing');
 	
 	const divBtnTeam 			= $('#btn-team');
@@ -296,8 +297,9 @@
 			else if (divBtnTeam.children().length === 0) {
 				this.state.screenInfo.teamList.map(function (value) {
 					divBtnTeam.append(
-							$('<div/>').attr({
-								class: 'col-xs-3'
+						$('<div/>').attr({
+							class: 'col-xs-3',
+							style: 'padding:2px;',
 						})
 						.append(
 							$('<a/>').attr({
@@ -330,6 +332,12 @@
 				txtBoxTyping.on('click', function () {
 					txtBoxTyping.focus();
 				});
+			}
+
+			const team = store.getSelectedTeam();
+			if (team)
+			{
+				imgTeamLogo.attr('src', team.image)
 			}
 	
 			// 進捗状況の変更

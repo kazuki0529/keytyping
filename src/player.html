@@ -21,30 +21,31 @@
   
     <!-- 入力画面メイン部分-->
     <div class="panel panel-default">
-      <div id="pnl-header" class="panel-heading">
-        <div id="lbl-user-name"></div>
-        <div id="lbl-count-down"></div>
-      </div>
 
       <!-- 名前とチーム選択部分定義 -->
       <div id="pnl-select-team" class="panel-body">
-        <form>
-          <div class="form-group">
-            <input id="txtbox-user-name" type="text" class="form-control" placeholder="名前かニックネームを入力">
-          </div>
-          <div id="btn-team" class="row">
-          </div>
-        </form>
+        <input id="txtbox-user-name" type="text" class="form-control" placeholder="名前かニックネームを入力">
+        <div id="btn-team"></div>
       </div>
 
       <!-- タイピング部分の定義 -->
       <div id="pnl-typing" class="panel-body hidden">
         <div id="lbl-alert" class="alert alert-info" role="alert" style="padding:8px; margin-bottom:8px;"></div>
-        <div id="lbl-word-view"></div>
         <!-- タイピング予定の文字列 -->
-        <div style="overflow: hidden;">
-          <div id="lbl-word-typing-match" class="text-typing-match"></div>
-          <div id="lbl-word-typing" class="text-typing"></div>
+        <div class="media">
+          <div class="media-body" style="width:100%; position: relative;">
+            <div id="lbl-user-name" class="label label-primary" style="font-size:14px;"></div>
+            <div style="position: absolute; bottom:0; width:100%;">
+              <div id="lbl-word-view"></div>
+              <div style="overflow: hidden;">
+                <div id="lbl-word-typing-match" class="text-typing-match"></div>
+                <div id="lbl-word-typing" class="text-typing"></div>
+              </div>
+            </div>
+          </div>
+          <p class="media-right" style="padding:4px;">
+            <img id='img-team-logo' src="">
+          </p>
         </div>
         <div class="progress" style="height:4px; margin-bottom:2px;">
           <div id="prg-typing" class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar" style="width: 0%;"></div>
