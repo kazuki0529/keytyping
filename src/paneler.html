@@ -21,26 +21,22 @@
 
     <!-- 入力画面メイン部分-->
     <div class="panel panel-default">
+      <div id="pnl-header" class="panel-heading">
+        <div id="lbl-user-name"></div>
+        <div id="lbl-count-down"></div>
+      </div>
 
       <!-- 名前とチーム選択部分定義 -->
       <div id="pnl-select-team" class="panel-body">
         <input id="txtbox-user-name" type="text" class="form-control" placeholder="名前かニックネームを入力">
-        <div id="btn-team"></div>
+        <div id="btn-team">
+        </div>
       </div>
 
       <!-- 回答部分の定義 -->
       <div id="pnl-paneler" class="panel-body hidden">
         <div id="lbl-alert" class="alert alert-info" role="alert" style="padding:8px; margin-bottom:8px;"></div>
-        <!-- タイピング予定の文字列 -->
-        <div class="media">
-          <div class="media-body" style="width:100%; position: relative;">
-            <div id="lbl-user-name" class="label label-primary" style="font-size:14px;"></div>
-            <div id="lbl-question" style="position: absolute; bottom:0; width:100%;"></div>
-          </div>
-          <p class="media-right" style="padding:4px;">
-            <img id='img-team-logo' src="">
-          </p>
-        </div>
+        <div id="lbl-question"></div>
         <div id="pnl-selection" class="list-group">
         </div>
       </div>

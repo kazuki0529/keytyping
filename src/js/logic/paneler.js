@@ -16,8 +16,6 @@ const pnlSelectTeam			= $('#pnl-select-team');
 const pnlPaneler 			= $('#pnl-paneler');
 const pnlSelection	 		= $('#pnl-selection');
 
-const imgTeamLogo 			= $('#img-team-logo');
-
 const divBtnTeam 			= $('#btn-team');
 
 const store = {
@@ -197,17 +195,10 @@ const store = {
 		else if (divBtnTeam.children().length === 0) {
 			this.state.screenInfo.teamList.map(function (value) {
 				divBtnTeam.append(
-					$('<div/>').attr({
-						class: 'col-xs-3',
-						style: 'padding:2px;',
-					})
-					.append(
-						$('<a/>').attr({
-							class	: 'thumbnail',
-							onclick	: 'selectTeam( \'' + value.key + '\' )'
+					$('<a/>').attr({
+						onclick: 'selectTeam( \'' + value.key + '\' )'
 					}).append($('<img/>').attr(
-								{ src: value.image }
-				))));
+						{ src: value.image })));
 			});
 		}
 
@@ -251,12 +242,6 @@ const store = {
 		}
 		else {
 			pnlSelection.children().addClass('disabled');
-		}
-
-		const team = store.getSelectedTeam();
-		if (team)
-		{
-			imgTeamLogo.attr('src', team.image)
 		}
 
 		// 通知領域の制御
