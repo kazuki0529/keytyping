@@ -14,15 +14,8 @@
   const store = {
     state:{
       questionCtlChannel:generateUUID(),
-      questions:{
-
-      },
-			survivors:{
-				SPRING:[],
-				SUMMER:[],
-				AUTUMN:[],
-				WINTER:[]
-			}
+			questions: {},
+			players : []
     },
 		/**
 		* questions stateを更新する（これをやらないとquestionsの変更がvueに反映されない）
@@ -39,12 +32,7 @@
 				status:QUIZ_STATUS.READY,
 				remainsSec:questionInfo.limitSec,
 				tabLabel: "第" + (Object.keys(this.state.questions).length + 1).toString() + "問",
-				panelers:{
-					SPRING:{},
-					SUMMER:{},
-					AUTUMN:{},
-					WINTER:{}
-				}
+				panelers:[]
 			});
 
 			this.refreshQuestions();
@@ -84,10 +72,35 @@
     setQuestionFinish:function(questionId){
 			var question = this.state.questions[questionId];
 
-			if(question){
+			if (question) {
 				this.state.questions[questionId].status = QUIZ_STATUS.FINISH;
 				this.state.questions[questionId].remainsSec = 0;
 				this.refreshQuestions();
+
+				// ランキング表示用に集計作業を行う
+				const self = this;
+				const panelers = this.state.questions[questionId].panelers;
+				Object.assign(Object.keys(this.state.players), Object.keys(panelers)).map(function (userId) {
+					const isCorrect = question.selections[panelers[userId].answer.selectIndex].isCorrect;
+					if (question.selections[panelers[userId].answer.selectIndex]) {
+						// どっちにもある場合は単純な加算
+						if ((self.state.players[userId]) && (panelers[userId])) {
+							self.state.players[userId].userInfo = panelers[userId].userInfo;
+							if (isCorrect) {
+								self.state.players[userId].correctCount++;
+								self.state.players[userId].selectTime += panelers[userId].answer.selectTime;
+							}
+						}
+						// 第１問目 or 途中参加の場合は、playersに新規登録
+						else if (!(self.state.players[userId]) && (panelers[userId])) {
+							self.state.players[userId] = {
+								userInfo: panelers[userId].userInfo,
+								correctCount: isCorrect ? 1 : 0,
+								selectTime: isCorrect ? panelers[userId].answer.selectTime : 0
+							}
+						}
+					}
+				});
 			}
     },
     /**
@@ -104,21 +117,6 @@
 			this.refreshQuestions();
     },
     /**
-    * 指定された問題終了時点での全問正解者リストを表示する
-    * @param {String} questionId 問題ID
-    * @return {Object} 全問正解者リスト
-    */
-    getSurvivorsOf:function(questionId){
-			var question = this.state.questions[questionId];
-
-			if(question){
-				if(question.status === QUIZ_STATUS.FINISH){
-					this.checkSurvivors(questionId);
-		      return this.state.questions[questionId].survivors;
-				}
-			}
-    },
-    /**
     * 問題に回答者情報を設定する
     * @param {String} questionId 問題ID
     * @param {Object} panelerInfo 回答者情報
@@ -127,62 +125,12 @@
 			var question = this.state.questions[questionId];
 
 			if(question){
-				if(question.status === QUIZ_STATUS.RUNNING && this.isSurvivor(panelerInfo.userInfo.userId)){
-					this.state.questions[questionId].panelers[panelerInfo.userInfo.team][panelerInfo.userInfo.userId] = panelerInfo;
+				if(question.status === QUIZ_STATUS.RUNNING){
+					this.state.questions[questionId].panelers[panelerInfo.userInfo.userId] = panelerInfo;
 					this.refreshQuestions();
 				}
 			}
     },
-		/**
-		* 対象のユーザーが全問正解者か判定する
-		* @param {String} userId ユーザーID
-		* @return {boolean} 全問正解者であればtrue
-		*/
-		isSurvivor:function(userId){
-			if(Object.keys(this.state.questions).length === 1){
-				//1問目はまだ脱落者なし
-				return true;
-			}else{
-				var self = this;
-				var allSurvivorsId = Object.keys(this.state.survivors)
-					.map(function(team){
-						return self.state.survivors[team].map(function(userInfo){
-							return userInfo.userId;
-						});
-					}) // [[a,b,c],[d,e,f],[g,h],[i]]の形式になっているのでreduceする
-					.reduce(function(prev,next){
-						return prev.concat(next);
-					},[]);
-
-				return allSurvivorsId.indexOf(userId) >= 0;
-			}
-		},
-		/**
-		* 問題の正解者を確認する
-		* @param {String} questionId 問題ID
-		*/
-		checkSurvivors:function(questionId){
-			var question = this.state.questions[questionId];
-
-			if(question){
-				var self = this;
-				Object.keys(question.panelers).forEach(function(team){
-					self.state.survivors[team] = Object.keys(question.panelers[team]).map(function(userId){
-						return question.panelers[team][userId];
-					})
-					.filter(function(panelerInfo){
-						//正解者のみに絞り込む
-						return question.selections[panelerInfo.answer.selectIndex].isCorrect;
-					})
-					.map(function(panelerInfo){
-						//userInfoのみ格納する
-						return panelerInfo.userInfo;
-					})
-				});
-
-				this.state.survivors = Object.assign({},this.state.survivors);
-			}
-		},
     /**
 		 * 問題操作用のチャンネル情報を返す
      * @return {String} 問題操作用チャンネル
@@ -271,14 +219,12 @@
       /**
       * QUESTION_FINISHイベントのpublisher
       * @param {String} questionId 問題ID
-      * @param {Object} survivors 全問正解者リスト
       */
-      questionFinish:function(questionId,survivors){
+      questionFinish:function(questionId){
         var sendInfo = {
           type:QUESTION_FINISH,
           payload:{
             questionId:questionId,
-            survivors:survivors
           }
         };
 
@@ -330,8 +276,7 @@
           })
           .onEnd(function(){
             store.setQuestionFinish(questionId);
-            var survivors = store.getSurvivorsOf(questionId);
-            publisher.questionFinish(questionId,survivors);
+            publisher.questionFinish(questionId);
           })
           .start();
 
@@ -543,14 +488,9 @@
 				panelersCountOf:function(questionId,selectIndex){
 					var self = this;
 					return Object.keys(this.questions[questionId].panelers)
-						.map(function(team){
-							return Object.keys(self.questions[questionId].panelers[team]).map(function(userId){
-								return self.questions[questionId].panelers[team][userId];
-							});
+						.map(function (userId) {
+							return self.questions[questionId].panelers[userId];
 						})
-						.reduce(function(prev,next){
-							return prev.concat(next);
-						},[])
 						.filter(function(panelerInfo){
 							return panelerInfo.answer.selectIndex === selectIndex
 						})
@@ -591,14 +531,6 @@
 					{
 						return '';
 					}
-				},
-				/**
-				* チームの全問正解者数
-				* @param {String} team
-				* @return {int} 正解者数
-				*/
-				getSurvivorsCountOf(team){
-					return this.survivors[team].length;
 				}
 			},
       computed: {
@@ -630,22 +562,6 @@
 					}else{
 						return "";
 					}
-				},
-				/**
-				* 全問正解者の人数を表示すべきかどうか
-				* @return {boolean} 表示すべきであればtrue
-				*/
-				hasToShowSurvivor:function(){
-					var self = this;
-					//今までの全問題が回答表示状態であれば表示する
-					return Object.keys(this.questions)
-						.map(function(questionId){
-							return self.questions[questionId];
-						})
-						.filter(function(question){
-							return question.status !== QUIZ_STATUS.RESULT_OPENED
-						})
-						.length === 0;
 				},
         /**
          * Controllerへのリンクを生成
