@@ -15,7 +15,7 @@
     state:{
       questionCtlChannel:generateUUID(),
 			questions: {},
-			ranking : []
+			players : []
     },
 		/**
 		* questions stateを更新する（これをやらないとquestionsの変更がvueに反映されない）
@@ -80,20 +80,20 @@
 				// ランキング表示用に集計作業を行う
 				const self = this;
 				const panelers = this.state.questions[questionId].panelers;
-				Object.assign(Object.keys(this.state.ranking), Object.keys(panelers)).map(function (userId) {
+				Object.assign(Object.keys(this.state.players), Object.keys(panelers)).map(function (userId) {
 					const isCorrect = question.selections[panelers[userId].answer.selectIndex].isCorrect;
 					if (question.selections[panelers[userId].answer.selectIndex]) {
 						// どっちにもある場合は単純な加算
-						if ((self.state.ranking[userId]) && (panelers[userId])) {
-							self.state.ranking[userId].userInfo = panelers[userId].userInfo;
+						if ((self.state.players[userId]) && (panelers[userId])) {
+							self.state.players[userId].userInfo = panelers[userId].userInfo;
 							if (isCorrect) {
-								self.state.ranking[userId].correctCount++;
-								self.state.ranking[userId].selectTime += panelers[userId].answer.selectTime;
+								self.state.players[userId].correctCount++;
+								self.state.players[userId].selectTime += panelers[userId].answer.selectTime;
 							}
 						}
-						// 第１問目 or 途中参加の場合は、rankingに新規登録
-						else if (!(self.state.ranking[userId]) && (panelers[userId])) {
-							self.state.ranking[userId] = {
+						// 第１問目 or 途中参加の場合は、playersに新規登録
+						else if (!(self.state.players[userId]) && (panelers[userId])) {
+							self.state.players[userId] = {
 								userInfo: panelers[userId].userInfo,
 								correctCount: isCorrect ? 1 : 0,
 								selectTime: isCorrect ? panelers[userId].answer.selectTime : 0
