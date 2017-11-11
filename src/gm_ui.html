@@ -42,7 +42,7 @@
             placeholder="配信データ">
           </el-input>
         </el-form-item>
-        <el-form-item>
+        <el-form-item label="ラウンド操作">
           <el-button
             type="primary"
             size="large"
@@ -54,7 +54,17 @@
             v-on:click="roundFinish"
             :disabled="roundInfo.roundId === ''">終了</el-button>
         </el-form-item>
-      </el-form>
+        <el-form-item label="個人戦候補者">
+          <el-button
+            type="primary"
+            size="large"
+            v-on:click="openRanking">表示</el-button>
+          <el-button
+            type="danger"
+            size="large"
+            v-on:click="closeRanking">閉じる</el-button>
+          </el-form-item>
+        </el-form>
     </template>
   </div>        
 </body>

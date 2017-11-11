@@ -6,7 +6,11 @@ const ROUND_START_COUNT		= 'ROUND_START_COUNT';		// ラウンド開始までの�
 const ROUND_START			= 'ROUND_START';			// ラウンド開始
 const ROUND_FINISH_COUNT	= 'ROUND_FINISH_COUNT';		// ラウンド終了までのカウントダウン情報
 const ROUND_FINISH			= 'ROUND_FINISH';			// ラウンド終了
-const INPUT_FINISH			= 'INPUT_FINISH';			// 入力完了
+const INPUT_FINISH 			= 'INPUT_FINISH';			// 入力完了
+// クイズと被るのでランキングはコメントアウト
+//const RANKING_OPEN 		= 'RANKING_OPEN'; 			// ランキング表示
+//const RANKING_CLOSE 		= 'RANKING_CLOSE'; 			// ランキングクローズ
+
 
 const QUESTION_INFO 		= 'QUESTION_INFO'; 			// 問題情報
 const QUESTION_START_COUNT 	= 'QUESTION_START_COUNT'; 	// クイズ開始までのカウントダウン情報

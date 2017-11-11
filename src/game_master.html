@@ -93,13 +93,16 @@
                       </el-table-column>
                       <el-table-column
                         prop="userName"
-                        label="名前">
+                        label="名前"
+                        header-align = "center"
+                        align="left">
                       </el-table-column>
                       <el-table-column
                         prop="score"
                         label="得点"
                         width="60"
-                      >
+                        header-align = "center"
+                        align="right">
                       </el-table-column>
                     </el-table>
                     <!--debug-->
@@ -143,6 +146,56 @@
         <div :id="comment.id" v-if="comment.show" :style="comment.style">{{comment.str}}</div>
       </transition>
     </div>
+
+    <!-- 個人戦候補者表示用ダイアログ -->
+    <el-dialog
+    title="個人戦候補者"
+    size="large"
+    :visible="hasShowTeamRanking">
+    <el-row>
+      <transition-group
+        appear
+        name="custom-classes-transition"
+        enter-active-class="animated flip"
+        leave-active-class="animated rotateOut"
+        tag="el-col">
+        <el-col v-if="hasShowTeamRanking" :span="6" v-for="( teamRank, key ) in getTeamRanking()" :key="key">
+          <el-card class="box-card" :body-style="{ padding: '4px' }">
+            <div style="text-align:center;">
+              <img :src="getTeamLogoPath(key)" />
+            </div>
+            <div>
+              <el-table
+                :data="teamRank"
+                border
+                style="width: 100%"
+                empty-text="参加されていません">
+                <el-table-column
+                  prop="userInfo.userName"
+                  label="名前"
+                  header-align = "center">
+                </el-table-column>
+                <el-table-column
+                  prop="score"
+                  label="得点"
+                  width="64px"
+                  header-align = "center"
+                  align="right">
+                </el-table-column>
+                <!--
+                <el-table-column
+                  prop="selectTime"
+                  label="時間"
+                  width="80px">
+                </el-table-column>
+              -->
+              </el-table>
+            </div>
+          </el-card>
+        </el-col>
+      </transition> 
+    </el-row>
+  </el-dialog>
 
     <!-- debug -->
     <!--el-row>
