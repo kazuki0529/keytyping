@@ -40,10 +40,10 @@
     </el-row>
     <el-row v-if="hasRound">
       <el-col :span="24">
-        <el-tabs :value="activeTabName">
+        <el-tabs :value="activeTabName" @tab-click="handleTabClick">
           <el-tab-pane v-for="round in roundsArray" :key="round.roundId" :label="round.roundName"　:name="round.roundId">
             <!-- ラウンド情報 -->
-            <el-row>
+            <el-row v-if="activeTabName === round.roundId">
               <el-col :span="8">
                 <span style="font-size:x-large">残り　{{ remainsTimeOf(round.roundId) }}</span>
               </el-col>
@@ -72,7 +72,7 @@
               </el-col>
             </el-row>
             <!-- 得点 -->
-            <el-row>
+            <el-row v-if="activeTabName === round.roundId">
               <el-col :span="6" v-for="team in getTeamsOf(round.roundId)" :key="round.roundId + team">
                 <el-card class="box-card">
                   <div slot="header" class="clearfix">

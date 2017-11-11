@@ -17,7 +17,15 @@
 		state: {
 			roundCtlChannel: generateUUID(),
 			rounds: {},
-			comments: []
+			comments: [],
+			activeTabName:null
+		},
+		/**
+		* 現在有効なTabを設定する
+		* @param {String} activeTabName 有効なタブ名（=roundId）
+		*/
+		setActiveTabName(activeTabName){
+			this.state.activeTabName = activeTabName;
 		},
 		/**
 		* rounds stateを更新する（これをやらないとroundsの変更がvueに反映されない）
@@ -50,6 +58,8 @@
 
 			// after-leaveで消せない時があるのでここでコメントを初期化
 			this.state.comments = [];
+
+			this.setActiveTabName(roundinfo.roundId);
 
 			this.refreshRounds();
 		},
@@ -532,6 +542,9 @@
 			el 		: "#app",
 			data	: store.state,
 			methods : {
+				handleTabClick:function(tab){
+					store.setActiveTabName(tab.name);
+				},
 				remainsTimeOf:function(roundId){
 					var remainsSec = this.rounds[roundId].remainsSec;
 					return Math.floor(remainsSec / 60) + ":" + ("0" + (remainsSec % 60).toString()).substr(-2,2);
@@ -642,20 +655,6 @@
 				roundsArray : function(){
 					var self = this;
 					return Object.keys(this.rounds).map(function(key){return self.rounds[key]});
-				},
-				/**
-				* アクティブにすべきTabNameを返す
-				* @return {string} TabName
-				*/
-				activeTabName : function(){
-					//TabNameはroundIdに紐づいているので
-					//最後のroundIdを返す
-					var roundIds = Object.keys(this.rounds);
-					if(roundIds.length > 0){
-						return roundIds[roundIds.length - 1];
-					}else{
-						return "";
-					}
 				},
 				/**
 				 * Controllerへのリンクを生成
