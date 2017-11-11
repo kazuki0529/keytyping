@@ -132,6 +132,40 @@ const app = new Vue({
 					message	: 'ラウンド終了メッセージを送信しました。',
 					type	: 'success'
 				});
+			},
+		openRanking:
+			function () {
+				const sendData = {
+					type	: RANKING_OPEN,
+					payload: {}
+				};
+				pubnub.publish({
+					channel: store.getRoundCtlChannel(),
+					message: JSON.stringify( sendData )
+				});
+
+				this.$notify({
+					title	: 'Success',
+					message	: '個人戦候補者表示メッセージを送信しました。',
+					type	: 'success'
+				});
+			},
+		closeRanking:
+			function () {
+				const sendData = {
+					type	: RANKING_CLOSE,
+					payload: {}
+				};
+				pubnub.publish({
+					channel: store.getRoundCtlChannel(),
+					message: JSON.stringify( sendData )
+				});
+
+				this.$notify({
+					title	: 'Success',
+					message	: '個人戦候補者非表示メッセージを送信しました。',
+					type	: 'success'
+				});
 			}
 	}
 });

@@ -373,12 +373,14 @@
         store.setPaneler(message.payload.answer.questionId,message.payload);
 			},
 			/**
+			 * ランキング表示イベントのハンドラ
        * @param {Object} message イベントメッセージ
 			 */
 			onRankingOpen:function (message) {
 				store.rankingOpen(message.payload.mode);
 			},
 			/**
+			 * ランキングクローズイベントのハンドラ
        * @param {Object} message イベントメッセージ
 			 */
 			onRankingClose:function (mesage) {
@@ -643,10 +645,10 @@
 				getTeamRanking: function () {
 					const totalRanking = store.getRanking();
 					const teamRanking = {
-						SPRING: totalRanking.filter(function (value) { return value.userInfo.team === TEAM.SPRING }),
-						SUMMER: totalRanking.filter(function (value) { return value.userInfo.team === TEAM.SUMMER }),
-						AUTUMN: totalRanking.filter(function (value) { return value.userInfo.team === TEAM.AUTUMN }),
-						WINTER: totalRanking.filter(function (value) { return value.userInfo.team === TEAM.WINTER })
+						SPRING: totalRanking.filter(function (value) { return value.userInfo.team === TEAM.SPRING }).slice(0,TEAM_RANKING_COUNT),
+						SUMMER: totalRanking.filter(function (value) { return value.userInfo.team === TEAM.SUMMER }).slice(0,TEAM_RANKING_COUNT),
+						AUTUMN: totalRanking.filter(function (value) { return value.userInfo.team === TEAM.AUTUMN }).slice(0,TEAM_RANKING_COUNT),
+						WINTER: totalRanking.filter(function (value) { return value.userInfo.team === TEAM.WINTER }).slice(0,TEAM_RANKING_COUNT)
 					};
 					return teamRanking;
 				},

@@ -4,7 +4,14 @@
 	//ラウンド開始前の準備時間(秒)
 	const READY_TIME_SEC = 3;
 	//コメントの採用率
-	const COMMENT_RATIO = 80.0
+	const COMMENT_RATIO = 80.0;
+	// ランキングの設定値
+	const TOTAL_RANKING_COUNT = 10;
+	const TEAM_RANKING_COUNT = 5;
+	const RANKING_STATUS = {
+		OPEN	: "OPEN",						//ランキング表示
+		CLOSE	: "CLOSE"						//ランキング非表示
+	}
 
 /**
 * オブジェクト定義
@@ -20,7 +27,10 @@
 			roundCtlChannel: generateUUID(),
 			rounds: {},
 			comments: [],
-			activeTabName:null
+			activeTabName:null,
+			ranking: {
+				status : RANKING_STATUS.CLOSE
+			}
 		},
 		/**
 		* 現在有効なTabを設定する
@@ -226,7 +236,28 @@
 		 */
 		getComments(){
 			return this.state.comments;
-		}
+		},
+		/**
+		 * ランキング表示
+		 * @param {String} mode 表示モード
+		 */
+		rankingOpen: function () {
+			this.state.ranking.status = RANKING_STATUS.OPEN;
+		},
+		/**
+		 * ランキング非表示
+		 */
+		rankingClose: function() {
+			this.state.ranking.status = RANKING_STATUS.CLOSE;
+		},
+		/**
+		 * ランキングの表示ステータスを返す
+		 * @return {String} ランキングの表示ステータス
+		 */
+		getRankingStatus: function(){
+			return this.state.ranking.status;
+		},
+
 	};
 
 
@@ -392,8 +423,22 @@
 			*/
 			onInputFinish:function(message){
 				store.setPlayer(message.payload.input.roundId,message.payload);
+			},
+			/**
+			 * ランキング表示イベントのハンドラ
+    	   	 * @param {Object} message イベントメッセージ
+			 */
+			onRankingOpen:function (message) {
+				store.rankingOpen(message.payload.mode);
+			},
+			/**
+			 * ランキングクローズイベントのハンドラ
+			 * @param {Object} message イベントメッセージ
+			 */
+			onRankingClose:function (mesage) {
+				store.rankingClose();
 			}
-		};
+  		};
 	}
 	/**
 	* ラウンド時間のタイムキーパーオブジェクト
@@ -553,20 +598,20 @@
 		const app = new Vue({
 			el 		: "#app",
 			data	: store.state,
-			methods : {
-				handleTabClick:function(tab){
+			methods: {
+				handleTabClick: function (tab) {
 					store.setActiveTabName(tab.name);
 				},
-				remainsTimeOf:function(roundId){
+				remainsTimeOf: function (roundId) {
 					var remainsSec = this.rounds[roundId].remainsSec;
-					return Math.floor(remainsSec / 60) + ":" + ("0" + (remainsSec % 60).toString()).substr(-2,2);
+					return Math.floor(remainsSec / 60) + ":" + ("0" + (remainsSec % 60).toString()).substr(-2, 2);
 				},
 				/**
 				* 指定されたroundで有効なteamを返す
 				* @param {string} roundId ラウンドID
 				* @return {Array} チームキーの配列
 				*/
-				getTeamsOf:function(roundId){
+				getTeamsOf: function (roundId) {
 					return Object.keys(this.rounds[roundId].score);
 				},
 				/**
@@ -575,7 +620,7 @@
 				* @param {string} team チームキー
 				* @return {int} 当該ラウンドの当該チームのスコア
 				*/
-				getScoreOf:function(roundId,team){
+				getScoreOf: function (roundId, team) {
 					return this.rounds[roundId].score[team];
 				},
 				/**
@@ -584,47 +629,45 @@
 				* @param {string} team チームキー
 				* @return {{userId:string,userName:string,score:int,rank:int}} Top10のユーザー情報（スコアの降順）
 				*/
-				getTopPlayersOf(roundId,team){
+				getTopPlayersOf(roundId, team) {
 					var self = this;
-					return Object.keys(this.rounds[roundId].players[team]).map(function(userId){
+					return Object.keys(this.rounds[roundId].players[team]).map(function (userId) {
 						return self.rounds[roundId].players[team][userId];
-					}).map(function(playerInfo){
+					}).map(function (playerInfo) {
 						return {
-							userId:playerInfo.userInfo.userId,
-							userName:playerInfo.userInfo.userName,
-							score:playerInfo.input.wordsIndex + 1,
-							finishTime:playerInfo.input.finishTime
+							userId: playerInfo.userInfo.userId,
+							userName: playerInfo.userInfo.userName,
+							score: playerInfo.input.wordsIndex + 1,
+							finishTime: playerInfo.input.finishTime
 						};
-					}).sort(function(a,b){
+					}).sort(function (a, b) {
 						var scoreDiff = b.score - a.score;
 						//スコアに差があればそれを採用
-						if(scoreDiff !== 0){
+						if (scoreDiff !== 0) {
 							return scoreDiff
-						}else{
+						} else {
 							//スコアに差が無い場合は、finishTimeの昇順（≒早い順）
 							return Date.parse(a.finishTime) - Date.parse(b.finishTime);
 						}
-					}).slice(0,10)
-					.map(function(player,idx){
-						return Object.assign({},player,{rank:idx + 1});
-					})
+					}).slice(0, 10)
+						.map(function (player, idx) {
+							return Object.assign({}, player, { rank: idx + 1 });
+						})
 				},
 				/**
 				* 指定されたチームのロゴのパスを取得する
 				* @param {string} team チームキー
 				* @return {string} ロゴへの相対パス
 				*/
-				getTeamLogoPath:function( key ){
-					const team = TEAM_LOGO.filter( function( team ){
+				getTeamLogoPath: function (key) {
+					const team = TEAM_LOGO.filter(function (team) {
 						return team.key === key;
 					});
 
-					if( team.length === 1 )
-					{
+					if (team.length === 1) {
 						return team[0].image;
 					}
-					else
-					{
+					else {
 						return '';
 					}
 				},
@@ -649,6 +692,54 @@
 						if (v.id == el.id) store.state.comments.splice(i, 1);
 					});
 					*/
+				},
+				getTeamRanking: function () {
+					if (store.getRankingStatus() !== RANKING_STATUS.OPEN)
+					{
+						return false;
+					}
+
+					var self = this;
+					var totalRanking = [];
+					// ラウンドループ
+					Object.keys(this.rounds).forEach(function (roundId, roundIndex) {
+						// チームループ
+						Object.keys(self.rounds[roundId].players).forEach(function (team) {
+							const roundRank = Object.keys(self.rounds[roundId].players[team]).map(function (userId) {
+								return self.rounds[roundId].players[team][userId];
+							}).map(function (playerInfo) {
+								return {
+									userInfo: playerInfo.userInfo,
+									score: playerInfo.input.wordsIndex + 1,
+									finishTime: playerInfo.input.finishTime
+								};
+							})
+							.map(function (player, idx) {
+								// 今回のイベント特性上複数回参加しているかは考慮しない（あと勝ちにする）
+								totalRanking[player.userInfo.userId] = player;
+							});
+						})
+					});
+
+					totalRanking = Object.keys(totalRanking).map(function (value) {
+							return totalRanking[value];
+						}).sort(function (a, b) {
+							var scoreDiff = b.score - a.score;
+							//スコアに差があればそれを採用
+							if (scoreDiff !== 0) {
+								return scoreDiff
+							} else {
+								//スコアに差が無い場合は、finishTimeの昇順（≒早い順）
+								return Date.parse(a.finishTime) - Date.parse(b.finishTime);
+							}
+						});
+
+					return {
+						SPRING: totalRanking.filter(function (value) { return value.userInfo.team === TEAM.SPRING }).slice(0, TEAM_RANKING_COUNT),
+						SUMMER: totalRanking.filter(function (value) { return value.userInfo.team === TEAM.SUMMER }).slice(0, TEAM_RANKING_COUNT),
+						AUTUMN: totalRanking.filter(function (value) { return value.userInfo.team === TEAM.AUTUMN }).slice(0, TEAM_RANKING_COUNT),
+						WINTER: totalRanking.filter(function (value) { return value.userInfo.team === TEAM.WINTER }).slice(0, TEAM_RANKING_COUNT)
+					};
 				}
 			},
 			computed: {
@@ -679,6 +770,13 @@
 				 */
 				hasViewComment: function () {
 					return store.getComments().filter(function (v) { return v.show; }).length > 0;
+				},
+				/**
+				 * チームランキング表示判定
+				 * @return {bool} チームランキング表示フラグ
+				 */
+				hasShowTeamRanking: function () {
+					return store.getRankingStatus() === RANKING_STATUS.OPEN;
 				}
 			}
 		});
@@ -719,6 +817,12 @@
 						break;
 					case ROUND_FINISH:		// ラウンド終了
 						subscribeEvents.onGameFinish(json);
+						break;
+					case RANKING_OPEN:
+						subscribeEvents.onRankingOpen(json);
+						break;
+					case RANKING_CLOSE:
+						subscribeEvents.onRankingClose(json);
 						break;
 					default :
 						break;
