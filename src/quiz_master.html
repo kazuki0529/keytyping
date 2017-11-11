@@ -161,11 +161,11 @@
             label="チーム"
             width="120px"
             header-align ="center">
-            <template scope="scope">
+            <template slot-scope="ranking">
             <!-- 表示領域的に足らない気がする。。。
-              <img :src="getTeamLogoPath(scope.row.userInfo.team)" />
+              <img :src="getTeamLogoPath(ranking.row.userInfo.team)" />
             -->
-            {{getTeamName(scope.row.userInfo.team)}}
+            {{getTeamName(ranking.row.userInfo.team)}}
           </template>
           </el-table-column>
           <el-table-column
