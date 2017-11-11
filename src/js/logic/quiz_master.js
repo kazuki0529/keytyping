@@ -3,6 +3,13 @@
 */
 	//問題開始前の準備時間(秒)
 	const READY_TIME_SEC = 0;
+	const TOTAL_RANKING_COUNT = 10;
+	const TEAM_RANKING_COUNT = 5;
+	const RANKING_STATUS = {
+		OPEN	: "OPEN",						//ランキング表示
+		CLOSE	: "CLOSE"						//ランキング非表示
+	}
+
 
 /**
 * オブジェクト定義
@@ -15,7 +22,11 @@
     state:{
       questionCtlChannel:generateUUID(),
 			questions: {},
-			players : []
+			players: [],
+			ranking: {
+				mode : false,
+				status : RANKING_STATUS.CLOSE
+			}
     },
 		/**
 		* questions stateを更新する（これをやらないとquestionsの変更がvueに反映されない）
@@ -101,7 +112,7 @@
 						}
 					}
 				});
-			}
+			}			
     },
     /**
     * 完了した問題の結果を公開する
@@ -137,7 +148,63 @@
 		 */
     getQuestionCtlChannel:function(){
       return this.state.questionCtlChannel;
-    }
+		},
+		/**
+		 * ランキング表示
+		 * @param {String} mode 表示モード
+		 */
+		rankingOpen: function (mode) {
+			this.state.ranking.mode = mode;
+			this.state.ranking.status = RANKING_STATUS.OPEN;
+		},
+		/**
+		 * ランキング非表示
+		 */
+		rankingClose: function() {
+			this.state.ranking.status = RANKING_STATUS.CLOSE;
+		},
+		/**
+		 * ランキングの表示ステータスを返す
+     * @return {String} ランキングの表示ステータス
+		 */
+		getRankingStatus: function(){
+			return this.state.ranking.status;
+		},
+		/**
+		 * ランキングの表示モードを返す
+     * @return {String} ランキングの表示モード
+		 */
+		getRankingMode: function (){
+			return this.state.ranking.mode;
+		},
+		/**
+		 * 総合ランキングの返却
+     * @return {Object} 総合ランキングリスト
+		 */
+		getRanking: function () {
+			var self = this;
+
+			return Object.keys(this.state.players).sort(function (keyA, keyB) {
+					// 正解数が多くて、回答時間が短いものを上に持っていく
+					const a = self.state.players[keyA];
+					const b = self.state.players[keyB];
+
+					if ((b.correctCount - a.correctCount) > 0)
+						return 1;
+					if ((b.correctCount - a.correctCount) < 0)
+						return -1;
+				
+					if ((b.selectTime - a.selectTime) > 0)
+						return -1;
+					if ((b.selectTime - a.selectTime) < 0)
+						return 1;
+				
+					return 0;
+				})
+				.map(function (userId) {
+					return self.state.players[userId];
+				});
+		}
   }
 
   /**
@@ -277,7 +344,7 @@
           .onEnd(function(){
             store.setQuestionFinish(questionId);
             publisher.questionFinish(questionId);
-          })
+					})
           .start();
 
       },
@@ -304,7 +371,19 @@
       onAnswer:function(message){
 				console.dir(message);
         store.setPaneler(message.payload.answer.questionId,message.payload);
-      }
+			},
+			/**
+       * @param {Object} message イベントメッセージ
+			 */
+			onRankingOpen:function (message) {
+				store.rankingOpen(message.payload.mode);
+			},
+			/**
+       * @param {Object} message イベントメッセージ
+			 */
+			onRankingClose:function (mesage) {
+				store.rankingClose();
+			}
     };
   }
 
@@ -531,7 +610,47 @@
 					{
 						return '';
 					}
-				}
+				},
+				/**
+				 * 総合ランキングを返す
+				 * @return {bool} 総合ランキング
+				 */
+				getTotalRanking: function () {
+					return store.getRanking().slice(0,TOTAL_RANKING_COUNT);
+				},
+				/**
+				* 指定されたチーム名を返す
+				* @param {string} team チームキー
+				* @return {string} チーム名
+				*/
+				getTeamName: function ( key ) {
+					const team = TEAM_LOGO.filter( function( team ){
+						return team.key === key;
+					});
+
+					if (team.length === 1) {
+						return team[0].view;
+					}
+					else {
+						return false;
+					}
+				},
+				/**
+				* 指定されたroundで有効なteamを返す
+				* @param {string} roundId ラウンドID
+				* @return {Array} チームキーの配列
+				*/
+				getTeamRanking: function () {
+					const totalRanking = store.getRanking();
+					const teamRanking = {
+						SPRING: totalRanking.filter(function (value) { return value.userInfo.team === TEAM.SPRING }),
+						SUMMER: totalRanking.filter(function (value) { return value.userInfo.team === TEAM.SUMMER }),
+						AUTUMN: totalRanking.filter(function (value) { return value.userInfo.team === TEAM.AUTUMN }),
+						WINTER: totalRanking.filter(function (value) { return value.userInfo.team === TEAM.WINTER })
+					};
+					return teamRanking;
+				},
+
 			},
       computed: {
 				/**
@@ -568,7 +687,21 @@
          */
         getControllerUrl : function () {
           return './qm_ui.html?' + store.getQuestionCtlChannel();
-        }
+				},
+				/**
+				 * 総合ランキング表示判定
+				 * @return {bool} 総合ランキング表示フラグ
+				 */
+				hasShowTotalRanking: function () {
+					return (store.getRankingStatus() === RANKING_STATUS.OPEN) && ( store.getRankingMode() === RANKING_MODE.TOTAL );
+				},
+				/**
+				 * チームランキング表示判定
+				 * @return {bool} チームランキング表示フラグ
+				 */
+				hasShowTeamRanking: function () {
+					return (store.getRankingStatus() === RANKING_STATUS.OPEN) && ( store.getRankingMode() === RANKING_MODE.TEAM );
+				}
       }
     });
 
@@ -608,7 +741,13 @@
             break;
           case RESULT:
             subscribeEvents.onResult(json);
-            break;
+						break;
+					case RANKING_OPEN:
+						subscribeEvents.onRankingOpen(json);
+						break;
+					case RANKING_CLOSE:
+						subscribeEvents.onRankingClose(json);
+						break;
           default :
             break;
         }

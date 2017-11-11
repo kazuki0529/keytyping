@@ -36,30 +36,25 @@
           <el-button
             type="primary"
             size="large"
-            v-on:click="questionResult"
-            :disabled="questionInfo.questionId === ''">正解発表</el-button>
+            v-on:click="questionResult">正解発表</el-button>
           <el-button
             type="danger"
             size="large"
-            v-on:click="questionFinish"
-            :disabled="questionInfo.questionId === ''">終了</el-button>
+            v-on:click="questionFinish">終了</el-button>
         </el-form-item>
         <el-form-item label="ランキング表示">
           <el-button
             type="primary"
             size="large"
-            v-on:click="openRanking('TOTAL')"
-            :disabled="questionInfo.questionId === ''">総合</el-button>
+            v-on:click="openRanking('TOTAL')">総合</el-button>
           <el-button
             type="primary"
             size="large"
-            v-on:click="openRanking('TEAM')"
-            :disabled="questionInfo.questionId === ''">チーム別</el-button>
+            v-on:click="openRanking('TEAM')">チーム別</el-button>
           <el-button
-            type="primary"
+            type="danger"
             size="large"
-            v-on:click="closeRanking"
-            :disabled="questionInfo.questionId === ''">閉じる</el-button>
+            v-on:click="closeRanking">閉じる</el-button>
         </el-form-item>
       </el-form>
     </template>

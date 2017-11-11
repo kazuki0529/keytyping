@@ -5,6 +5,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="https://unpkg.com/element-ui@1.4.8/lib/theme-default/index.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.5.1" type="text/css">
 </head>
 <body>
   <div id="app">
@@ -139,6 +140,106 @@
       </el-col>
     </el-row>
 
+    <!-- ランキング表示ダイアログ -->
+    <el-dialog
+      title="総合ランキング"
+      size="large"
+      :visible="hasShowTotalRanking">
+      <transition
+        appear
+        name="custom-classes-transition"
+        enter-active-class="animated flipInX"
+        leave-active-class="animated flipOutX">
+        <el-table
+          :data="getTotalRanking()"
+          border
+          style="width: 100%"
+          empty-text="クイズが開催されていません"
+          v-if="hasShowTotalRanking">
+          <el-table-column
+            prop="userInfo.team"
+            label="チーム"
+            width="120px"
+            header-align ="center">
+            <template scope="scope">
+            <!-- 表示領域的に足らない気がする。。。
+              <img :src="getTeamLogoPath(scope.row.userInfo.team)" />
+            -->
+            {{getTeamName(scope.row.userInfo.team)}}
+          </template>
+          </el-table-column>
+          <el-table-column
+            prop="userInfo.userName"
+            label="名前"
+            header-align ="center">
+          </el-table-column>
+          <el-table-column
+            prop="correctCount"
+            label="正解数"
+            width="120px"
+            header-align = "center"
+            align="right">
+          </el-table-column>
+          <el-table-column
+            prop="selectTime"
+            label="時間(秒)"
+            width="120px"
+            header-align = "center"
+            align="right">
+          </el-table-column>
+        </el-table>
+      </transition>
+    </el-dialog>
+    
+    <el-dialog
+      title="チームランキング"
+      size="large"
+      :visible="hasShowTeamRanking">
+      <el-row>
+        <transition-group
+          appear
+          name="custom-classes-transition"
+          enter-active-class="animated flip"
+          leave-active-class="animated rotateOut"
+          tag="el-col">
+          <el-col v-if="hasShowTeamRanking" :span="6" v-for="( teamRank, key ) in getTeamRanking()" :key="key">
+            <el-card class="box-card" :body-style="{ padding: '4px' }">
+              <div style="text-align:center;">
+                <img :src="getTeamLogoPath(key)" />
+              </div>
+              <div>
+                <el-table
+                  :data="teamRank"
+                  border
+                  style="width: 100%"
+                  empty-text="参加されていません">
+                  <el-table-column
+                    prop="userInfo.userName"
+                    label="名前"
+                    header-align = "center">
+                  </el-table-column>
+                  <el-table-column
+                    prop="correctCount"
+                    label="正解"
+                    width="64px"
+                    header-align = "center"
+                    align="right">
+                  </el-table-column>
+                  <!--
+                  <el-table-column
+                    prop="selectTime"
+                    label="時間"
+                    width="80px">
+                  </el-table-column>
+                -->
+                </el-table>
+              </div>
+            </el-card>
+          </el-col>
+        </transition> 
+      </el-row>
+    </el-dialog>
+
     <!-- debug -->
     <!--el-row>
       <pre>
@@ -162,6 +263,7 @@
   <script src="./js/const/action.js"></script>
   <script src="./js/const/quiz.js"></script>
   <script src="./js/const/team.js"></script>
+  <script src="./js/const/ranking.js"></script>
   <script src="./js/module/uuid.js"></script>
   <script src="./js/logic/quiz_master.js"></script>
 </html>
