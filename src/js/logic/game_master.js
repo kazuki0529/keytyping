@@ -3,6 +3,8 @@
 */
 	//ラウンド開始前の準備時間(秒)
 	const READY_TIME_SEC = 3;
+	//コメントの採用率
+	const COMMENT_RATIO = 80.0
 
 /**
 * オブジェクト定義
@@ -17,7 +19,15 @@
 		state: {
 			roundCtlChannel: generateUUID(),
 			rounds: {},
-			comments: []
+			comments: [],
+			activeTabName:null
+		},
+		/**
+		* 現在有効なTabを設定する
+		* @param {String} activeTabName 有効なタブ名（=roundId）
+		*/
+		setActiveTabName(activeTabName){
+			this.state.activeTabName = activeTabName;
 		},
 		/**
 		* rounds stateを更新する（これをやらないとroundsの変更がvueに反映されない）
@@ -50,6 +60,8 @@
 
 			// after-leaveで消せない時があるのでここでコメントを初期化
 			this.state.comments = [];
+
+			this.setActiveTabName(roundinfo.roundId);
 
 			this.refreshRounds();
 		},
@@ -133,36 +145,46 @@
 					 * コメントデータの登録
 					 * 縦位置やフォントサイズをランダムで表示
 					 */
-					const team = TEAM_LOGO.filter(function (team) {
-						return team.key === playerInfo.userInfo.team;
-					});
-					const config = {
-						left: "-100%",	// 最終的には領域外に配置
-						top: Math.floor(Math.random() * parseInt(512)) + "px",
-						fontSize: (Math.floor(Math.random() * parseInt(16)) + 24) + "px",
-						color: team.length === 1 ? team[0].color : 'white'
-					};
-					this.state.comments.push({
-						id: generateUUID(),
-						userInfo:playerInfo.userInfo,
-						str: round.words[playerInfo.input.wordsIndex].view + '@' + playerInfo.userInfo.userName,
-						style: 'position:absolute;font-weight:bold;width:205%;z-index:99999;cursor:default;'
-							+ 'text-shadow:black 2px 0px,  black -2px 0px,'
-							+ 'black 0px -2px, black 0px 2px,'
-							+ 'black 2px 2px , black -2px 2px,'
-							+ 'black 2px -2px, black -2px -2px,'
-							+ 'black 1px 2px,  black -1px 2px,'
-							+ 'black 1px -2px, black -1px -2px,'
-							+ 'black 2px 1px,  black -2px 1px,'
-							+ 'black 2px -1px, black -2px -1px;'
-							+ 'top:' + config.top + ';'
-							+ 'left:' + config.left + ';'
-							+ 'color:' + config.color + ';'
-							+ 'font-size:' + config.fontSize + ';',
-						show: true
-					})
+					if(this._commentLottary()){ //コメントの割合をCOMMENT_RATIOに制限する
+						const team = TEAM_LOGO.filter(function (team) {
+							return team.key === playerInfo.userInfo.team;
+						});
+						const config = {
+							left: "-100%",	// 最終的には領域外に配置
+							top: Math.floor(Math.random() * parseInt(512)) + "px",
+							fontSize: (Math.floor(Math.random() * parseInt(16)) + 24) + "px",
+							color: team.length === 1 ? team[0].color : 'white'
+						};
+						this.state.comments.push({
+							id: generateUUID(),
+							userInfo:playerInfo.userInfo,
+							str: round.words[playerInfo.input.wordsIndex].view + '@' + playerInfo.userInfo.userName,
+							style: 'position:absolute;font-weight:bold;width:205%;z-index:99999;cursor:default;'
+								+ 'text-shadow:black 2px 0px,  black -2px 0px,'
+								+ 'black 0px -2px, black 0px 2px,'
+								+ 'black 2px 2px , black -2px 2px,'
+								+ 'black 2px -2px, black -2px -2px,'
+								+ 'black 1px 2px,  black -1px 2px,'
+								+ 'black 1px -2px, black -1px -2px,'
+								+ 'black 2px 1px,  black -2px 1px,'
+								+ 'black 2px -1px, black -2px -1px;'
+								+ 'top:' + config.top + ';'
+								+ 'left:' + config.left + ';'
+								+ 'color:' + config.color + ';'
+								+ 'font-size:' + config.fontSize + ';',
+							show: true
+						})
+					}
+
 				}
 			}
+		},
+		/**
+		* コメントを表示すべきかどうかの抽選
+		* @return {boolean} trueであればコメントを表示する
+		*/
+		_commentLottary(){
+			return COMMENT_RATIO <= Math.random(100) * 100;
 		},
 
 		/**
@@ -532,6 +554,9 @@
 			el 		: "#app",
 			data	: store.state,
 			methods : {
+				handleTabClick:function(tab){
+					store.setActiveTabName(tab.name);
+				},
 				remainsTimeOf:function(roundId){
 					var remainsSec = this.rounds[roundId].remainsSec;
 					return Math.floor(remainsSec / 60) + ":" + ("0" + (remainsSec % 60).toString()).substr(-2,2);
@@ -642,20 +667,6 @@
 				roundsArray : function(){
 					var self = this;
 					return Object.keys(this.rounds).map(function(key){return self.rounds[key]});
-				},
-				/**
-				* アクティブにすべきTabNameを返す
-				* @return {string} TabName
-				*/
-				activeTabName : function(){
-					//TabNameはroundIdに紐づいているので
-					//最後のroundIdを返す
-					var roundIds = Object.keys(this.rounds);
-					if(roundIds.length > 0){
-						return roundIds[roundIds.length - 1];
-					}else{
-						return "";
-					}
 				},
 				/**
 				 * Controllerへのリンクを生成
