@@ -335,6 +335,7 @@ pubnub.subscribe({
 	});
 	// チーム選択イベント
 	function selectTeam(team) {
+		store.inputUserName(txtBoxUserName.val());
 		store.selectTeam(team);
 	}
 	// 回答選択イベント
