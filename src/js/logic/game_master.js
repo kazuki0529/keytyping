@@ -161,7 +161,7 @@
 						});
 						const config = {
 							left: "-100%",	// 最終的には領域外に配置
-							top: Math.floor(Math.random() * parseInt(512)) + "px",
+							top: ( Math.floor(Math.random() * parseInt(70)) + 25 ) + "%",
 							fontSize: (Math.floor(Math.random() * parseInt(16)) + 24) + "px",
 							color: team.length === 1 ? team[0].color : 'white'
 						};
