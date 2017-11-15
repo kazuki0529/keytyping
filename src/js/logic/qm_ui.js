@@ -25,9 +25,9 @@ const store = {
       })
 		},
 		questionInfo	: {
-			limitSec	: 60,
+			limitSec			: 10,
 			questionId		: '',
-			question:{}
+			question			:{}
 		}
 	},
 
