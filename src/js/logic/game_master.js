@@ -734,12 +734,20 @@
 							}
 						});
 
-					return {
-						SPRING: totalRanking.filter(function (value) { return value.userInfo.team === TEAM.SPRING }).slice(0, TEAM_RANKING_COUNT),
-						SUMMER: totalRanking.filter(function (value) { return value.userInfo.team === TEAM.SUMMER }).slice(0, TEAM_RANKING_COUNT),
-						AUTUMN: totalRanking.filter(function (value) { return value.userInfo.team === TEAM.AUTUMN }).slice(0, TEAM_RANKING_COUNT),
-						WINTER: totalRanking.filter(function (value) { return value.userInfo.team === TEAM.WINTER }).slice(0, TEAM_RANKING_COUNT)
-					};
+
+					return TEAM_LOGO.map(function (team) {
+						return {
+							team: team,
+							teamScore:
+								Object.keys(self.rounds)
+									.map(function (roundId) { return self.rounds[roundId].score[team.key]; })
+									.reduce(function (prev, current) { return prev + current; }, 0),
+							ranking:
+								totalRanking.
+									filter(function (value) { return value.userInfo.team === team.key })
+									.slice(0, TEAM_RANKING_COUNT)
+						};
+					});
 				}
 			},
 			computed: {
