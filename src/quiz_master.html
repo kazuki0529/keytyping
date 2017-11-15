@@ -22,13 +22,29 @@
       <el-col :span="24">
         <div class="grid-content">
           <el-card class="box-card">
-            <div slot="header" class="clearfix">
-              <span style="line-height: 36px;">現在準備中です(￣∇￣)</span>
-            </div>
-            <div>
-              お手持ちのスマホで以下にアクセスしてください。<br />
-              <a href="dummy">https://xxxxx/xxx/</a>
-            </div>
+            <el-row>
+              <el-col :span="10">
+                <el-card header="slot#header" class="box-card" :body-style="{ padding : '4px' }">
+                  <div slot="header" class="clearfix" style="text-align:center;">
+                    <img src="./img/qr_code.png">
+                  </div>
+                  <div>
+                    お手持ちのスマホでQRコードを読み取るか、以下にアクセスしてください。<br />
+                    <a href="https://goo.gl/BRV7hW">https://goo.gl/BRV7hW</a>
+                  </div>
+                </el-card>
+              </el-col>
+              <el-col :span="14">
+                <el-carousel :interval="4000" indicator-position="none">
+                  <el-carousel-item style="width:100%; text-align:center;">
+                    <img src="./img/warning_no_reload.png" style="height:100%;">
+                  </el-carousel-item>
+                  <el-carousel-item style="width:100%; text-align:center;">
+                    <img src="./img/warning_no_keitai.png" style="height:100%;">
+                  </el-carousel-item>
+                </el-carousel>
+              </el-col>
+            </el-row>
           </el-card>
         </div>
       </el-col>
