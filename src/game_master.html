@@ -74,10 +74,10 @@
             <!-- 得点 -->
             <el-row v-if="activeTabName === round.roundId">
               <el-col :span="6" v-for="team in getTeamsOf(round.roundId)" :key="round.roundId + team">
-                <el-card class="box-card">
+                <el-card header="slot#header" class="box-card" :body-style="{ padding : '4px' }">
                   <div slot="header" class="clearfix">
                     <img :src="getTeamLogoPath(team)" />
-                    <span style="float:right; font-size:4em">{{ getScoreOf(round.roundId,team) }}</span>
+                    <span style="float:right; font-size:3em; line-height: 80px;">{{ getScoreOf(round.roundId,team) }}</span>
                   </div>
                   <div>
                     <el-table
@@ -147,9 +147,9 @@
       </transition>
     </div>
 
-    <!-- 個人戦候補者表示用ダイアログ -->
+    <!-- 結果発表用ダイアログ -->
     <el-dialog
-    title="個人戦候補者"
+    title="結果発表"
     size="large"
     :visible="hasShowTeamRanking">
     <el-row>
@@ -159,14 +159,15 @@
         enter-active-class="animated flip"
         leave-active-class="animated rotateOut"
         tag="el-col">
-        <el-col v-if="hasShowTeamRanking" :span="6" v-for="( teamRank, key ) in getTeamRanking()" :key="key">
-          <el-card class="box-card" :body-style="{ padding: '4px' }">
-            <div style="text-align:center;">
-              <img :src="getTeamLogoPath(key)" />
+        <el-col v-if="hasShowTeamRanking" :span="6" v-for="teamRank in getTeamRanking()" :key="teamRank.team.key">
+          <el-card class="box-card" :body-style="{ padding : '4px' }">
+            <div slot="header">
+              <img :src="getTeamLogoPath(teamRank.team.key)" />
+              <span style="float:right; font-size:2.5em; line-height: 80px;">{{ teamRank.teamScore }}</span>
             </div>
             <div>
               <el-table
-                :data="teamRank"
+                :data="teamRank.ranking"
                 border
                 style="width: 100%"
                 empty-text="参加されていません">
@@ -193,7 +194,7 @@
             </div>
           </el-card>
         </el-col>
-      </transition> 
+      </transition>
     </el-row>
   </el-dialog>
 
