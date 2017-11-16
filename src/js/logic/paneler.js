@@ -77,8 +77,8 @@ const store = {
 	},
 	/**
 	 * 通知エリアに表示する情報の設定
-	 * @param {string} type 
-	 * @param {string} text 
+	 * @param {string} type
+	 * @param {string} text
 	 */
 	setAlert: function (type, text) {
 		this.state.screenInfo.alert.type = type;
@@ -104,7 +104,7 @@ const store = {
 	quizFinish: function () {
 		this.state.screenInfo.quizStatus 	= QUIZ_STATUS.FINISH;
 		this.state.quizInfo.remainsSec 		= false;
-		
+
 		this.drawingView(this.state);
 	},
 	/**
@@ -146,7 +146,7 @@ const store = {
 	 */
 	selectAnswer: function (index) {
 		if (this.state.screenInfo.quizStatus === QUIZ_STATUS.RUNNING)
-		{	
+		{
 			this.state.answer.selectIndex 	= index;
 			this.state.answer.selectTime 	= Math.floor((new Date().getTime() - this.state.quizInfo.startTime.getTime()) / 1000);
 		}
@@ -223,18 +223,19 @@ const store = {
 		if (quiz)
 		{
 			lblQuestion.text('Ｑ．' + quiz.question);
-			if (pnlSelection.children().length === 0)
-			{
+			if (quiz.questionId !== pnlSelection.attr('name')) {
+				pnlSelection.empty();
 				this.state.quizInfo.selections.map(function (value, index) {
 					pnlSelection.append(
 						$('<a/>').attr({
-							id 		: 'select-answer-'+ index,
-							class	: 'list-group-item',
-							onclick	: 'selectAnswer( ' + index + ' )'
-						}).text(value.symbol + ':' + value.label)
+							id: 'select-answer-' + index,
+							class: 'list-group-item',
+							onclick: 'selectAnswer( ' + index + ' )'
+						}).text(value.symbol + '：' + value.label)
 					);
 				});
 			}
+			pnlSelection.attr({ name: quiz.questionId });
 
 			pnlSelection.children().each(function (index, element) {
 				if (element.id === 'select-answer-' + answer.selectIndex) {
@@ -289,7 +290,7 @@ pubnub.subscribe({
 				store.notifyQusetionInfo( json.payload );
 				break;
 			case QUESTION_START_COUNT:	// クイズ開始までのカウントダウン
-				/*	
+				/*
 				if( store.validQuiz( json.payload.questionId ) )
 				{
 					store.setAlert( 'alert alert-warning', 'ラウンド開始' + json.payload.remainsSec + '秒前' )
@@ -328,7 +329,7 @@ pubnub.subscribe({
 
 /**
  * 画面のイベント登録
- */	
+ */
 	// ユーザ名入力のkeyupイベント登録
 	txtBoxUserName.keyup(function (e) {
 		store.inputUserName(e.target.value);

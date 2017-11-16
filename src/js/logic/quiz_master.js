@@ -112,7 +112,7 @@
 						}
 					}
 				});
-			}			
+			}
     },
     /**
     * 完了した問題の結果を公開する
@@ -193,12 +193,12 @@
 						return 1;
 					if ((b.correctCount - a.correctCount) < 0)
 						return -1;
-				
+
 					if ((b.selectTime - a.selectTime) > 0)
 						return -1;
 					if ((b.selectTime - a.selectTime) < 0)
 						return 1;
-				
+
 					return 0;
 				})
 				.map(function (userId) {
