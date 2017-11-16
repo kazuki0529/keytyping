@@ -92,6 +92,10 @@
 				const self = this;
 				const panelers = this.state.questions[questionId].panelers;
 				Object.assign(Object.keys(this.state.players), Object.keys(panelers)).map(function (userId) {
+					// 以前回答した人が今回回答しなかった場合は処理スキップ
+					if (!panelers[userId]) {
+						return;
+					}
 					const isCorrect = question.selections[panelers[userId].answer.selectIndex].isCorrect;
 					if (question.selections[panelers[userId].answer.selectIndex]) {
 						// どっちにもある場合は単純な加算
