@@ -175,7 +175,7 @@ const app = new Vue({
           channel: store.getQuestionCtlChannel(),
           message: JSON.stringify( sendData )
         });
-				
+
         this.$notify({
           title : 'Success',
           message : 'ランキングクローズ要求メッセージを送信しました。',
