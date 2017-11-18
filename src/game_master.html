@@ -73,25 +73,39 @@
                 <span style="font-size:x-large">残り　{{ remainsTimeOf(round.roundId) }}</span>
               </el-col>
               <el-col :span="8" style="margin-bottom:10px">
-                <el-alert
-                  v-if="round.status === 'RUNNING'"
-                  title="入力受付中"
-                  type="success"
-                  :closable="false"
+                <transition
+                  appear
+                  name="custom-classes-transition"
+                  enter-active-class="animated flipInX"
+                  leave-active-class="animated flipOutX"
+                  :duration="{ enter: 300, leave: 300 }"
+                  mode="out-in"
+                >
+                  <el-alert
+                    v-if="round.status === 'RUNNING'"
+                    title="入力受付中"
+                    type="success"
+                    :closable="false"
+                    key="RUNNING"
                   >
-                </el-alert>
-                <el-alert
-                  v-if="round.status === 'READY'"
-                  title="準備中"
-                  type="warning"
-                  :closable="false">
-                </el-alert>
-                <el-alert
-                  v-if="round.status === 'FINISH'"
-                  title="終了"
-                  type="error"
-                  :closable="false">
-                </el-alert>
+                  </el-alert>
+                  <el-alert
+                    v-else-if="round.status === 'READY'"
+                    title="準備中"
+                    type="warning"
+                    :closable="false"
+                    key="READY"
+                  >
+                  </el-alert>
+                  <el-alert
+                    v-else-if="round.status === 'FINISH'"
+                    title="終了"
+                    type="error"
+                    :closable="false"
+                    key="FINISH"
+                    >
+                    </el-alert>
+                </transition>
               </el-col>
               <el-col :span="8">
               </el-col>

@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="https://unpkg.com/element-ui@1.4.8/lib/theme-default/index.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.5.1" type="text/css">
+  <style type="text/css">
+  </style>
 </head>
 <body>
   <div id="app">
@@ -62,25 +64,44 @@
                 <span style="font-size:x-large">残り　{{ remainsTimeOf(question.questionId) }}</span>
               </el-col>
               <el-col :span="8" style="margin-bottom:10px">
-                <el-alert
-                  v-if="question.status === 'RUNNING'"
-                  title="回答受付中"
-                  type="success"
-                  :closable="false"
+                <transition
+                  appear
+                  name="custom-classes-transition"
+                  enter-active-class="animated flipInX"
+                  leave-active-class="animated flipOutX"
+                  :duration="{ enter: 300, leave: 300 }"
+                  mode="out-in"
                   >
-                </el-alert>
-                <el-alert
-                  v-if="question.status === 'READY'"
-                  title="準備中"
-                  type="warning"
-                  :closable="false">
-                </el-alert>
-                <el-alert
-                  v-if="question.status === 'FINISH'"
-                  title="終了"
-                  type="error"
-                  :closable="false">
-                </el-alert>
+                  <el-alert
+                    v-if="question.status === 'RUNNING'"
+                    title="回答受付中"
+                    type="success"
+                    key="RUNNING"
+                    :closable="false"
+                    >
+                  </el-alert>
+                  <el-alert
+                    v-else-if="question.status === 'READY'"
+                    title="準備中"
+                    type="warning"
+                    key="READY"
+                    :closable="false">
+                  </el-alert>
+                  <el-alert
+                    v-else-if="question.status === 'FINISH'"
+                    title="終了"
+                    type="error"
+                    key="FINISH"
+                    :closable="false">
+                  </el-alert>
+                  <el-alert
+                    v-else-if="question.status === 'RESULT_OPENED'"
+                    title="正解発表"
+                    type="info"
+                    key="RESULT_OPENED"
+                    :closable="false">
+                  </el-alert>
+                </transition>
               </el-col>
               <el-col :span="8">
               </el-col>
@@ -105,30 +126,35 @@
                 :span="24 / question.selections.length"
                 :key="selection.symbol"
               >
-                <el-card class="box-card">
-                  <div slot="header" class="clearfix" style="font-size:x-large">
+                <el-card class="box-card" :body-style="{ position: 'relative' }">
+                  <!-- 位置指定はかなり無理やり -->
+                  <transition
+                    name="custom-classes-transition"
+                    enter-active-class="animated tada"
+                    leave-active-class="animated flipOutY"
+                  >
                     <span
                       v-if="isResultOpen(question.questionId) && isCorrectAnswer(question.questionId,question.selections.indexOf(selection))"
-                      style="color:red"
+                      style="position:absolute;
+                            top:-105px;
+                            left:0; 
+                            width:100%; 
+                            height:100%; 
+                            font-size:12em;
+                            text-align:center; 
+                            font-weight:bold; 
+                            color:forestgreen;"
                     >
-                      {{ selection.symbol }} : {{ selection.label }}
+                      ◯
                     </span>
-                    <span
-                      v-if="!(isResultOpen(question.questionId) && isCorrectAnswer(question.questionId,question.selections.indexOf(selection)))"
-                    >
+                  </transition>
+                  <div slot="header" class="clearfix" style="font-size:x-large">
+                    <span>
                       {{ selection.symbol }} : {{ selection.label }}
                     </span>
                   </div>
-                  <div style="font-size:4em">
-                    <span
-                      v-if="isResultOpen(question.questionId) && isCorrectAnswer(question.questionId,question.selections.indexOf(selection))"
-                      style="color:red"
-                    >
-                      {{ panelersCountOf(question.questionId, question.selections.indexOf(selection)) }}
-                    </span>
-                    <span
-                      v-if="!(isResultOpen(question.questionId) && isCorrectAnswer(question.questionId,question.selections.indexOf(selection)))"
-                    >
+                  <div style="font-size:4em; text-align:center;">
+                    <span>
                       {{ panelersCountOf(question.questionId, question.selections.indexOf(selection)) }}
                     </span>
                   </div>
@@ -136,15 +162,19 @@
               </el-col>
             </el-row>
             <!-- 回答文 -->
-            <el-row v-if="isResultOpen(question.questionId)">
-              <el-col :span="24">
-                <el-card class="box-card">
-                  <div style="color:red;font-size:x-large">
+            <transition
+              name="custom-classes-transition"
+              enter-active-class="animated slideInUp"
+              leave-active-class="animated slideOutDown"
+            >
+              <el-row v-if="isResultOpen(question.questionId)">
+                <el-col :span="24">
+                  <el-card v-if="isResultOpen(question.questionId)" class="box-card">
                     {{ question.comment }}
-                  </div>
-                </el-card>
-              </el-col>
-            </el-row>
+                  </el-card>
+                </el-col>
+              </el-row>
+            </transition>
           </el-tab-pane>
         </el-tabs>
       </el-col>
