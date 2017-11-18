@@ -1,21 +1,56 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <title>ＮＳＴ５周年記念 アメリカ横断　ウルトラクイズ</title>
+  <title>ＮＳＴ５周年記念 アメリカ横断 ウルトラクイズ</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="https://unpkg.com/element-ui@1.4.8/lib/theme-default/index.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.5.1" type="text/css">
   <style type="text/css">
+    body{
+      background-image  : url("./img/quiz_backgroud.png");
+      background-size   : contain;
+      background-repeat : no-repeat;
+    }
+    @keyframes bounce {
+      from, 4%, 10.6%, 16% {
+        animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+        transform: translate3d(0,0,0);
+      }
+    
+      8%, 8.6% {
+        animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+        transform: translate3d(0, -30px, 0);
+      }
+    
+      14% {
+        animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+        transform: translate3d(0, -15px, 0);
+      }
+    
+      18% {
+        transform: translate3d(0, -4px, 0);
+      }
+
+      20%, to {
+        transform: translate3d(0, 0, 0);
+      }
+    }
+    .logo-animation {
+      animation-duration: 5s
+    }
   </style>
 </head>
 <body>
   <div id="app">
     <!-- ヘッダ -->
     <el-row>
-      <el-col :span="24">
+      <el-col :span="2">
+        <img class="bounce animated infinite logo-animation" src="./img/quiz_logo.png"/>
+      </el-col>
+      <el-col :span="22">
         <div class="grid-content">
-          <h1>ＮＳＴ５周年記念 アメリカ横断　ウルトラクイズ</h1>
+          <h1>ＮＳＴ５周年記念 アメリカ横断 ウルトラクイズ</h1>
         </div>
       </el-col>
     </el-row>
@@ -109,14 +144,21 @@
             <!--問題-->
             <el-row>
               <el-col :span="24">
-                <el-card class="box-card">
-                  <div slot="header" class="clearfix">
-                    問題
-                  </div>
-                  <div style="font-size:x-large">
-                    {{ question.question }}
-                  </div>
-                </el-card>
+                <transition
+                  appear
+                  name="custom-classes-transition"
+                  enter-active-class="animated flipInX"
+                  leave-active-class="animated flipOutX"
+                  >
+                  <el-card class="box-card">
+                    <div slot="header" class="clearfix">
+                      問題
+                    </div>
+                    <div style="font-size:x-large">
+                      {{ question.question }}
+                    </div>
+                  </el-card>
+                </transition>
               </el-col>
             </el-row>
             <!--選択肢-->
@@ -126,39 +168,46 @@
                 :span="24 / question.selections.length"
                 :key="selection.symbol"
               >
-                <el-card class="box-card" :body-style="{ position: 'relative' }">
-                  <!-- 位置指定はかなり無理やり -->
-                  <transition
-                    name="custom-classes-transition"
-                    enter-active-class="animated tada"
-                    leave-active-class="animated flipOutY"
+                <transition
+                  appear
+                  name="custom-classes-transition"
+                  enter-active-class="animated rubberBand"
+                  leave-active-class="animated slideOutDown"
                   >
-                    <span
-                      v-if="isResultOpen(question.questionId) && isCorrectAnswer(question.questionId,question.selections.indexOf(selection))"
-                      style="position:absolute;
-                            top:-105px;
-                            left:0; 
-                            width:100%; 
-                            height:100%; 
-                            font-size:12em;
-                            text-align:center; 
-                            font-weight:bold; 
-                            color:forestgreen;"
+                  <el-card class="box-card" :body-style="{ position: 'relative' }" :key="selection.symbol">
+                    <!-- 位置指定はかなり無理やり -->
+                    <transition
+                      name="custom-classes-transition"
+                      enter-active-class="animated tada"
+                      leave-active-class="animated flipOutY"
                     >
-                      ◯
-                    </span>
-                  </transition>
-                  <div slot="header" class="clearfix" style="font-size:x-large">
-                    <span>
-                      {{ selection.symbol }} : {{ selection.label }}
-                    </span>
-                  </div>
-                  <div style="font-size:4em; text-align:center;">
-                    <span>
-                      {{ panelersCountOf(question.questionId, question.selections.indexOf(selection)) }}
-                    </span>
-                  </div>
-                </el-card>
+                      <span
+                        v-if="isResultOpen(question.questionId) && isCorrectAnswer(question.questionId,question.selections.indexOf(selection))"
+                        style="position:absolute;
+                              top:-105px;
+                              left:0; 
+                              width:100%; 
+                              height:100%; 
+                              font-size:12em;
+                              text-align:center; 
+                              font-weight:bold; 
+                              color:forestgreen;"
+                      >
+                        ◯
+                      </span>
+                    </transition>
+                    <div slot="header" class="clearfix" style="font-size:x-large">
+                      <span>
+                        {{ selection.symbol }} : {{ selection.label }}
+                      </span>
+                    </div>
+                    <div style="font-size:4em; text-align:center;">
+                      <span>
+                        {{ panelersCountOf(question.questionId, question.selections.indexOf(selection)) }}
+                      </span>
+                    </div>
+                  </el-card>
+                </transition>
               </el-col>
             </el-row>
             <!-- 回答文 -->
