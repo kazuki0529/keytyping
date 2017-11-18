@@ -6,8 +6,21 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <link rel="stylesheet" type="text/css" href="./css/bootstrap_custom.css">
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <!-- google web font-->
+    <link href="https://fonts.googleapis.com/css?family=Reenie+Beanie" rel="stylesheet">
+    <style>
+      div.veil{
+        font-family: "Reenie Beanie", cursive;
+        font-size: 3em;
+        color: white;
+        background-color: #222;
+      }
+      body.veil{
+        background-color: #222 !important;
+      }
+    </style>
   </head>
-  <body>
+  <body class="veil">
     <!-- ヘッダ部 -->
     <nav class="navbar navbar-inverse">
       <div class="container-fluid">
@@ -19,7 +32,7 @@
       </div>
     </nav>
     <!-- 入力画面メイン部分-->
-    <div class="panel panel-default">
+    <div id="main" style="display:none" class="panel panel-default">
       <div class="list-group">
         <a class="list-group-item" href="./paneler.html" target="_blank">
           <h4 class="list-group-item-heading">アメリカ横断 ウルトラクイズ</h4>
@@ -38,9 +51,14 @@
         </a>
       </div>
     </div>
+    <div id="veil" class="veil" style="display:none;font-family: 'Reenie Beanie', cursive;" >
+      <p>It will be unveiled after...</p>
+      <div id="countDownTime"></div>
+    </div>
   </body>
   <!-- Jquerry -->
   <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
   <!-- Bootstrap -->
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+  <script src="js/logic/top.js"></script>
 </html>
