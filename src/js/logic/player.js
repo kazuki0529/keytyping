@@ -291,7 +291,7 @@
 			 * チーム選択画面の描画
 			 */
 			// 名前を入力したらチーム選択ボタンを表示
-			if (this.state.userInfo.userName === '') {
+			if (this.state.userInfo.userName.length < 2) {
 				divBtnTeam.empty();
 			}
 			else if (divBtnTeam.children().length === 0) {
