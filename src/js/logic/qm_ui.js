@@ -3,34 +3,19 @@
  * 画面はこの値を参照して描写を変える
  */
 const store = {
-	debug	: true,
-	state 	: {
+	debug: true,
+	state: {
 		screenInfo: {
 			questionCtlChannel: location.search.substring(1),
-			questionString : JSON.stringify({
-        question:"ススムくんとサキちゃんは双子である",
-        selections:[
-          {
-            symbol:"○",
-            label:"双子だ",
-            isCorrect:false
-          },
-          {
-            symbol:"×",
-            label:"双子ではない",
-            isCorrect:true
-          },
-        ],
-        comment:"多分双子ではない"
-      })
+			questionString: "",
+			questionInfo: {
+				limitSec: 10,
+				questionId: '',
+				question: {}
+			}
 		},
-		questionInfo	: {
-			limitSec			: 10,
-			questionId		: '',
-			question			:{}
-		}
+		questionInfo: false
 	},
-
 	debugConsole()
 	{
 		if(this.debug){
@@ -39,7 +24,7 @@ const store = {
 	},
 	questionStart( question )
 	{
-		this.state.questionInfo = Object.assign({},this.state.questionInfo,question);
+		this.state.screenInfo.questionInfo = Object.assign({}, this.state.screenInfo.questionInfo, question);
 	},
 
 	/**
@@ -53,6 +38,16 @@ const store = {
 	 */
 	getQuestionInfo() {
 		return this.state.questionInfo;
+	},
+	/**
+	 * ラウンド情報の読み込み
+	 * @param {int} index
+	 */
+	loadQuestionInfo(index) {
+		if (index < QUIZ_DATA.length) {
+			this.state.screenInfo.questionInfo = QUIZ_DATA[index];
+			this.state.screenInfo.questionString = JSON.stringify(QUIZ_DATA[index].question);
+		}
 	}
 };
 
@@ -92,7 +87,7 @@ const app = new Vue({
 				store.questionStart( JSON.parse( store.state.screenInfo.questionString ) );
 				const sendData = {
 					type	: QUESTION_START,
-					payload	: store.state.questionInfo
+					payload	: store.state.screenInfo.questionInfo
 				};
 				pubnub.publish({
 					channel: store.getQuestionCtlChannel(),
@@ -181,6 +176,10 @@ const app = new Vue({
           message : 'ランキングクローズ要求メッセージを送信しました。',
           type : 'success'
         });
+			},
+		loadQuestion:
+			function (index) {
+				store.loadQuestionInfo(index);
 			}
 	}
 });
