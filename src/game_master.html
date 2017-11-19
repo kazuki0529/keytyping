@@ -113,43 +113,50 @@
             <!-- 得点 -->
             <el-row v-if="activeTabName === round.roundId">
               <el-col :span="6" v-for="team in getTeamsOf(round.roundId)" :key="round.roundId + team">
-                <el-card header="slot#header" class="box-card" :body-style="{ padding : '4px' }">
-                  <div slot="header" class="clearfix">
-                    <img :src="getTeamLogoPath(team)" />
-                    <span style="float:right; font-size:3em; line-height: 80px;">{{ getScoreOf(round.roundId,team) }}</span>
-                  </div>
-                  <div>
-                    <el-table
-                      :data="getTopPlayersOf(round.roundId,team)"
-                      style="width: 100%"
-                      empty-text="入力待ち(-_-)"
-                      >
-                      <!--el-table-column
-                        prop="rank"
-                        label="順位"
-                        width="60"
-                      -->
-                      </el-table-column>
-                      <el-table-column
-                        prop="userName"
-                        label="名前"
-                        header-align = "center"
-                        align="left">
-                      </el-table-column>
-                      <el-table-column
-                        prop="score"
-                        label="得点"
-                        width="60"
-                        header-align = "center"
-                        align="right">
-                      </el-table-column>
-                    </el-table>
-                    <!--debug-->
-                    <!--pre>
-                      {{ getTopPlayersOf(round.roundId,team) }}
-                    </pre-->
-                  </div>
-                </el-card>
+                <transition
+                  appear
+                  name="custom-classes-transition"
+                  enter-active-class="animated flipInY"
+                  leave-active-class="animated slideOutDown"
+                  >
+                  <el-card header="slot#header" class="box-card" :body-style="{ padding : '4px' }">
+                    <div slot="header" class="clearfix">
+                      <img :src="getTeamLogoPath(team)" />
+                      <span style="float:right; font-size:3em; line-height: 80px;">{{ getScoreOf(round.roundId,team) }}</span>
+                    </div>
+                    <div>
+                      <el-table
+                        :data="getTopPlayersOf(round.roundId,team)"
+                        style="width: 100%"
+                        empty-text="入力待ち(-_-)"
+                        >
+                        <!--el-table-column
+                          prop="rank"
+                          label="順位"
+                          width="60"
+                        -->
+                        </el-table-column>
+                        <el-table-column
+                          prop="userName"
+                          label="名前"
+                          header-align = "center"
+                          align="left">
+                        </el-table-column>
+                        <el-table-column
+                          prop="score"
+                          label="得点"
+                          width="60"
+                          header-align = "center"
+                          align="right">
+                        </el-table-column>
+                      </el-table>
+                      <!--debug-->
+                      <!--pre>
+                        {{ getTopPlayersOf(round.roundId,team) }}
+                      </pre-->
+                    </div>
+                  </el-card>
+                </transition>
               </el-col>
             </el-row>
           </el-tab-pane>
