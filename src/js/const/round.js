@@ -125,7 +125,7 @@ const ROUND_DATA = [
 		]
 	},
 	{	// 最終ラウンド：早打ち王決定戦
-		limitSec: 120,
+		limitSec: 90,
 		aggregateCount: 15,
 		roundName: '早打ち王決定戦',
 		words: [
