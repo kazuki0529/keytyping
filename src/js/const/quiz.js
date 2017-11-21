@@ -13,7 +13,7 @@ const QUIZ_STATUS = {
  */
 const QUIZ_DATA = [
 	{ // 第１問
-		limitSec: 10,
+		limitSec: 15,
 		question: {
 			question: "NST社員は男性より女性が多い。",
 			selections: [
@@ -24,7 +24,7 @@ const QUIZ_DATA = [
 		}
 	},
 	{ // 第２問
-		limitSec: 10,
+		limitSec: 15,
 		question: {
 			question: "NSTアンケートより、お金と時間どちらがほしいか。の質問に対し、お金が多かった。",
 			selections: [
@@ -36,7 +36,7 @@ const QUIZ_DATA = [
 
 	},
 	{ // 第３問
-		limitSec: 10,
+		limitSec: 15,
 		question: {
 			question: "NSTアンケートより、【AJITEC時代に入社した方へご質問】横浜と川崎、どちらが良かったですか？の質問に対し、横浜が多かった。",
 			selections: [
@@ -47,7 +47,7 @@ const QUIZ_DATA = [
 		}
 	},
 	{ // 第４問
-		limitSec: 10,
+		limitSec: 15,
 		question: {
 			question: "あなたの好きなテレビ番組を教えて下さい。の質問に対し、お笑いが一番多かった。",
 			selections: [
@@ -58,7 +58,7 @@ const QUIZ_DATA = [
 		}
 	},
 	{ // 第５問
-		limitSec: 10,
+		limitSec: 15,
 		question: {
 			question: "NSTアンケートより、個人携帯は何を使っていますか？の質問に対し、iPhoneが多かった。",
 			selections: [
@@ -69,7 +69,7 @@ const QUIZ_DATA = [
 		}
 	},
 	{ // 第６問
-		limitSec: 10,
+		limitSec: 15,
 		question: {
 			question: "NACの名称は「Active support for Career development of, by and for myself」である。",
 			selections: [
@@ -81,7 +81,7 @@ const QUIZ_DATA = [
 
 	},
 	{ // 第７問
-		limitSec: 10,
+		limitSec: 15,
 		question: {
 			question: "宝くじ最大いくら買ったことがありますか？で、20万円以上購入した人は　いない。",
 			selections: [
@@ -92,7 +92,7 @@ const QUIZ_DATA = [
 		}
 	},
 	{ // 第８問
-		limitSec: 10,
+		limitSec: 15,
 		question: {
 			question: "NSTアンケートより、今の職業を選んでいなかったら、どんな職業についていたかったですか？の質問に対し、4つの中で、どれも選ばれなかったのはどれか。",
 			selections: [
@@ -106,7 +106,7 @@ const QUIZ_DATA = [
 
 	},
 	{ // 第９問
-		limitSec: 10,
+		limitSec: 15,
 		question: {
 			question: "NSTアンケートより、あなたの誕生月を教えて下さい。の質問に対し、4つの中で、１番多かった月はどれか。",
 			selections: [
@@ -119,7 +119,7 @@ const QUIZ_DATA = [
 		}
 	},
 	{ // 第１０問
-		limitSec: 10,
+		limitSec: 15,
 		question: {
 			question: "NSTアンケートより、YBP周辺（天王町・保土ヶ谷）のランチで一番おすすめの店はどこですか？。の質問に対し、4つの中で、３番に多かった店はどれか。",
 			selections: [
