@@ -194,7 +194,7 @@
 		* @return {boolean} trueであればコメントを表示する
 		*/
 		_commentLottary(){
-			return COMMENT_RATIO <= Math.random(100) * 100;
+			return COMMENT_RATIO >= Math.random(100) * 100;
 		},
 
 		/**
